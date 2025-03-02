@@ -27,8 +27,8 @@ export default function SearchModal({
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center pt-20 px-4">
       <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl">
         <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center gap-4 bg-gray-50 rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-[#b60575] focus-within:ring-opacity-50 transition-all">
-            <svg className="w-5 h-5 text-[#b60575]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex items-center gap-4 bg-gray-50 rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-[#ef991e] focus-within:ring-opacity-50 transition-all">
+            <svg className="w-5 h-5 text-[#ef991e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
@@ -77,15 +77,15 @@ export default function SearchModal({
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-gray-900 group-hover:text-[#b60575] transition-colors truncate">
+                        <h3 className="font-medium text-gray-900 group-hover:text-[#ef991e] transition-colors truncate">
                           {product.name}
                         </h3>
                         <p className="text-sm text-gray-500 truncate">{product.description || product.category}</p>
-                        <span className="text-sm font-medium text-[#b60575] mt-1 block">
+                        <span className="text-sm font-medium text-[#ef991e] mt-1 block">
                           {product.price} ₺
                         </span>
                       </div>
-                      <div className="text-gray-400 group-hover:text-[#b60575] transition-colors">
+                      <div className="text-gray-400 group-hover:text-[#ef991e] transition-colors">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>

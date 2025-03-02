@@ -49,16 +49,16 @@ export default function FavoritesPage() {
           <div className="flex justify-between items-center h-16 px-4 border-b border-pink-100">
             <Link 
               href="/" 
-              className="text-xl sm:text-2xl font-bold text-[#b60575] hover:opacity-80 transition-opacity flex items-center gap-2"
+              className="text-xl sm:text-2xl font-bold text-[#ef991e] hover:opacity-80 transition-opacity flex items-center gap-2"
             >
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#b60575] to-pink-400">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#ef991e] to-pink-400">
                 Kahve Orman Coffee & Bistro
               </span>
             </Link>
             <nav className="flex items-center gap-3">
               <Link
                 href="/"
-                className="px-4 py-2 text-sm rounded-xl bg-white text-[#b60575] border border-pink-200 hover:bg-pink-50 transition-colors flex items-center gap-2"
+                className="px-4 py-2 text-sm rounded-xl bg-white text-[#ef991e] border border-pink-200 hover:bg-pink-50 transition-colors flex items-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -76,10 +76,10 @@ export default function FavoritesPage() {
           <div className="bg-white rounded-2xl shadow-xl shadow-pink-100/20 overflow-hidden">
             <div className="p-6 border-b border-pink-100">
               <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-[#b60575]">
+                <h1 className="text-2xl font-bold text-[#ef991e]">
                   Favori Ürünlerim
                 </h1>
-                <span className="px-3 py-1 bg-pink-50 text-[#b60575] text-sm font-medium rounded-lg">
+                <span className="px-3 py-1 bg-pink-50 text-[#ef991e] text-sm font-medium rounded-lg">
                   {favoriteProducts.length} ürün
                 </span>
               </div>
@@ -88,8 +88,8 @@ export default function FavoritesPage() {
             <div className="p-6">
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-12">
-                  <div className="w-16 h-16 border-4 border-pink-200 border-t-[#b60575] rounded-full animate-spin"></div>
-                  <p className="mt-4 text-[#b60575] font-medium">Yükleniyor...</p>
+                  <div className="w-16 h-16 border-4 border-pink-200 border-t-[#ef991e] rounded-full animate-spin"></div>
+                  <p className="mt-4 text-[#ef991e] font-medium">Yükleniyor...</p>
                 </div>
               ) : error ? (
                 <div className="flex flex-col items-center justify-center py-12">
@@ -101,7 +101,7 @@ export default function FavoritesPage() {
                   <p className="text-red-500 font-medium mb-4">{error}</p>
                   <button
                     onClick={() => window.location.reload()}
-                    className="px-6 py-2 bg-[#b60575] text-white rounded-xl hover:bg-pink-700 transition-colors shadow-lg shadow-pink-200/20"
+                    className="px-6 py-2 bg-[#ef991e] text-white rounded-xl hover:bg-pink-700 transition-colors shadow-lg shadow-pink-200/20"
                   >
                     Tekrar Dene
                   </button>
@@ -116,7 +116,7 @@ export default function FavoritesPage() {
                   <p className="text-gray-500 font-medium mb-4">Henüz favori ürününüz yok</p>
                   <Link
                     href="/"
-                    className="px-6 py-2 bg-[#b60575] text-white rounded-xl hover:bg-pink-700 transition-colors shadow-lg shadow-pink-200/20"
+                    className="px-6 py-2 bg-[#ef991e] text-white rounded-xl hover:bg-pink-700 transition-colors shadow-lg shadow-pink-200/20"
                   >
                     Menüye Göz At
                   </Link>

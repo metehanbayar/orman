@@ -542,7 +542,7 @@ export default function MenuPage() {
             <div className="flex gap-4">
               <button
                 onClick={() => setShowAddModal(true)}
-                className="bg-[#b60575] text-white px-4 py-2 rounded-md hover:bg-[#8c0459] transition-colors"
+                className="bg-[#ef991e] text-white px-4 py-2 rounded-md hover:bg-[#8c0459] transition-colors"
               >
                 Yeni Ürün Ekle
               </button>
@@ -622,7 +622,7 @@ export default function MenuPage() {
                               }
                               setSelectedProducts(newSelected)
                             }}
-                            className="w-5 h-5 rounded border-gray-300 text-[#b60575] focus:ring-pink-500"
+                            className="w-5 h-5 rounded border-gray-300 text-[#ef991e] focus:ring-pink-500"
                           />
                         </div>
                         <div className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden">
@@ -773,11 +773,11 @@ export default function MenuPage() {
                 <div className="grid grid-cols-2 gap-4">
                   {FEATURE_ICONS.map((feature) => (
                     <div key={feature.label} className="space-y-2">
-                      <label className={`flex items-center gap-2 text-sm font-medium ${feature.label === 'Beğeni' ? 'text-[#b60575]' : 'text-gray-800'}`}>
+                      <label className={`flex items-center gap-2 text-sm font-medium ${feature.label === 'Beğeni' ? 'text-[#ef991e]' : 'text-gray-800'}`}>
                         <span>{feature.icon}</span>
                         <span>{feature.label}</span>
                         {feature.label === 'Beğeni' && (
-                          <span className="text-xs bg-pink-100 text-[#b60575] px-2 py-0.5 rounded-full">
+                          <span className="text-xs bg-pink-100 text-[#ef991e] px-2 py-0.5 rounded-full">
                             Çok satanlar için &quot;En Çok Satan&quot; seçin
                           </span>
                         )}
@@ -786,7 +786,7 @@ export default function MenuPage() {
                         name={`feature_${feature.label}`}
                         className={`w-full px-3 py-2 border rounded-md text-sm text-gray-900 ${
                           feature.label === 'Beğeni' 
-                            ? 'border-pink-200 bg-pink-50/50 focus:border-[#b60575] focus:ring-pink-200' 
+                            ? 'border-pink-200 bg-pink-50/50 focus:border-[#ef991e] focus:ring-pink-200' 
                             : 'border-gray-300'
                         }`}
                       >
@@ -795,7 +795,7 @@ export default function MenuPage() {
                           <option 
                             key={value} 
                             value={value}
-                            className={value === 'En Çok Satan' ? 'font-medium text-[#b60575]' : ''}
+                            className={value === 'En Çok Satan' ? 'font-medium text-[#ef991e]' : ''}
                           >
                             {value}
                           </option>
@@ -870,7 +870,7 @@ export default function MenuPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-[#b60575] rounded-md hover:bg-pink-700"
+                  className="px-4 py-2 text-sm font-medium text-white bg-[#ef991e] rounded-md hover:bg-pink-700"
                 >
                   Ekle
                 </button>
@@ -976,11 +976,11 @@ export default function MenuPage() {
                     <div className="grid grid-cols-2 gap-4">
                       {FEATURE_ICONS.map((feature) => (
                         <div key={feature.label} className="space-y-2">
-                          <label className={`flex items-center gap-2 text-sm font-medium ${feature.label === 'Beğeni' ? 'text-[#b60575]' : 'text-gray-800'}`}>
+                          <label className={`flex items-center gap-2 text-sm font-medium ${feature.label === 'Beğeni' ? 'text-[#ef991e]' : 'text-gray-800'}`}>
                             <span>{feature.icon}</span>
                             <span>{feature.label}</span>
                             {feature.label === 'Beğeni' && (
-                              <span className="text-xs bg-pink-100 text-[#b60575] px-2 py-0.5 rounded-full">
+                              <span className="text-xs bg-pink-100 text-[#ef991e] px-2 py-0.5 rounded-full">
                                 Çok satanlar için &quot;En Çok Satan&quot; seçin
                               </span>
                             )}
@@ -989,7 +989,7 @@ export default function MenuPage() {
                             name={`feature_${feature.label}`}
                             className={`w-full px-3 py-2 border rounded-md text-sm text-gray-900 ${
                               feature.label === 'Beğeni' 
-                                ? 'border-pink-200 bg-pink-50/50 focus:border-[#b60575] focus:ring-pink-200' 
+                                ? 'border-pink-200 bg-pink-50/50 focus:border-[#ef991e] focus:ring-pink-200' 
                                 : 'border-gray-300'
                             }`}
                           >
@@ -998,7 +998,7 @@ export default function MenuPage() {
                               <option 
                                 key={value} 
                                 value={value}
-                                className={value === 'En Çok Satan' ? 'font-medium text-[#b60575]' : ''}
+                                className={value === 'En Çok Satan' ? 'font-medium text-[#ef991e]' : ''}
                               >
                                 {value}
                               </option>
@@ -1046,7 +1046,7 @@ export default function MenuPage() {
                             variations: [...(prev?.variations || []), newVariation]
                           }))
                         }}
-                        className="mt-2 w-full px-3 py-2 text-sm font-medium text-[#b60575] bg-pink-50 rounded-md hover:bg-pink-100 transition-colors flex items-center justify-center gap-2"
+                        className="mt-2 w-full px-3 py-2 text-sm font-medium text-[#ef991e] bg-pink-50 rounded-md hover:bg-pink-100 transition-colors flex items-center justify-center gap-2"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -1064,7 +1064,7 @@ export default function MenuPage() {
                       type="text"
                       name="mssqlProductName"
                       defaultValue={editingProduct?.mssqlProductName || ''}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#b60575] text-gray-900"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ef991e] text-gray-900"
                       placeholder="MSSQL veritabanındaki ürün adı"
                     />
                     <p className="mt-1 text-sm text-gray-600">
@@ -1087,7 +1087,7 @@ export default function MenuPage() {
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 text-sm font-medium text-white bg-[#b60575] rounded-md hover:bg-pink-700"
+                      className="px-4 py-2 text-sm font-medium text-white bg-[#ef991e] rounded-md hover:bg-pink-700"
                     >
                       Kaydet
                     </button>
@@ -1149,7 +1149,7 @@ export default function MenuPage() {
                   <button
                     onClick={handleBulkCategoryUpdate}
                     disabled={!bulkCategory}
-                    className="px-4 py-2 text-sm font-medium text-white bg-[#b60575] rounded-md hover:bg-pink-700 disabled:opacity-50"
+                    className="px-4 py-2 text-sm font-medium text-white bg-[#ef991e] rounded-md hover:bg-pink-700 disabled:opacity-50"
                   >
                     Kategori Güncelle
                   </button>
@@ -1168,7 +1168,7 @@ export default function MenuPage() {
                   <button
                     onClick={handleBulkPriceUpdate}
                     disabled={!bulkPriceIncrease}
-                    className="px-4 py-2 text-sm font-medium text-white bg-[#b60575] rounded-md hover:bg-pink-700 disabled:opacity-50"
+                    className="px-4 py-2 text-sm font-medium text-white bg-[#ef991e] rounded-md hover:bg-pink-700 disabled:opacity-50"
                   >
                     Fiyat Güncelle
                   </button>

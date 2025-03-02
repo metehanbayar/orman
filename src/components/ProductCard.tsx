@@ -293,11 +293,11 @@ export default function ProductCard({ product, allProducts = [], categoryProduct
           </h3>
           <div className="p-3 pt-1 mt-auto">
             {product.variations?.length ? (
-              <span className="block w-full px-2 py-1 bg-[#b60575] text-white text-xs font-medium rounded-lg text-center">
+              <span className="block w-full px-2 py-1 bg-[#ef991e] text-white text-xs font-medium rounded-lg text-center">
                 Çeşitler için tıklayın
               </span>
             ) : (
-              <span className="block w-full px-2 py-1 bg-[#b60575] text-white text-xs font-medium rounded-lg text-center">
+              <span className="block w-full px-2 py-1 bg-[#ef991e] text-white text-xs font-medium rounded-lg text-center">
                 {product.price} ₺
               </span>
             )}
@@ -477,7 +477,7 @@ export default function ProductCard({ product, allProducts = [], categoryProduct
                         {currentProduct.name}
                       </h3>
                       {!currentProduct.variations?.length && (
-                        <span className="text-xl font-bold text-[#b60575]">
+                        <span className="text-xl font-bold text-[#ef991e]">
                           {currentProduct.price} ₺
                         </span>
                       )}
@@ -494,7 +494,7 @@ export default function ProductCard({ product, allProducts = [], categoryProduct
                               className="flex items-center justify-between p-3 rounded-xl bg-pink-50 hover:bg-pink-100 transition-colors"
                             >
                               <span className="text-base font-medium text-gray-900">{variation.name}</span>
-                              <span className="text-lg font-bold text-[#b60575]">{variation.price} ₺</span>
+                              <span className="text-lg font-bold text-[#ef991e]">{variation.price} ₺</span>
                             </div>
                           ))}
                         </div>

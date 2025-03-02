@@ -121,7 +121,7 @@ export default function MatchPage() {
         <div className="bg-white rounded-lg shadow overflow-hidden">
           {loading ? (
             <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-[#b60575]"></div>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-[#ef991e]"></div>
               <p className="mt-2 text-sm text-gray-500">Yükleniyor...</p>
             </div>
           ) : (
