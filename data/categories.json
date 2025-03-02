@@ -1,0 +1,212 @@
+[
+  {
+    "id": "kq1k07b75",
+    "name": "Kahvaltı",
+    "image": "/categories/kahvalti.jpg",
+    "description": "Kahvaltı kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "xpewdrkp3",
+    "name": "Tost",
+    "image": "/categories/tost.jpg",
+    "description": "Tost kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "oyhgi200h",
+    "name": "Sandviç",
+    "image": "/categories/sandvic.jpg",
+    "description": "Sandviç kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "z8h4htvha",
+    "name": "Aperatif",
+    "image": "/categories/aperatif.jpg",
+    "description": "Aperatif kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "vsinb262l",
+    "name": "Salata",
+    "image": "/categories/salata.jpg",
+    "description": "Salata kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "y14izfoov",
+    "name": "Makarna",
+    "image": "/categories/makarna.jpg",
+    "description": "Makarna kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "clbiacw4r",
+    "name": "Krepler",
+    "image": "/categories/krepler.jpg",
+    "description": "Krepler kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "cntrvtq54",
+    "name": "Wrap",
+    "image": "/categories/wrap.jpg",
+    "description": "Wrap kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "9ux998jd4",
+    "name": "Burger",
+    "image": "/categories/burger.jpg",
+    "description": "Burger kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "5o9ptt38u",
+    "name": "Pizza",
+    "image": "/categories/pizza.jpg",
+    "description": "Pizza kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "14fxecf78",
+    "name": "Kahve Orman Döküm Lezzetler",
+    "image": "/categories/Kahve Orman-dokum-lezzetler.jpg",
+    "description": "Kahve Orman Döküm Lezzetler kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "zns4pcbn2",
+    "name": "Tavuk Yemekleri",
+    "image": "/categories/tavuk-yemekleri.jpg",
+    "description": "Tavuk Yemekleri kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "k0a3cf4xq",
+    "name": "Et Yemekleri",
+    "image": "/categories/et-yemekleri.jpg",
+    "description": "Et Yemekleri kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "yqv0iuhbn",
+    "name": "Steak House",
+    "image": "/categories/steak-house.jpg",
+    "description": "Steak House kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "z43d288yg",
+    "name": "Menüler",
+    "image": "/categories/menuler.jpg",
+    "description": "Menüler kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "5yw9jr5tk",
+    "name": "Çocuk",
+    "image": "/categories/cocuk.jpg",
+    "description": "Çocuk kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "uajdoa4sd",
+    "name": "Özel Tatlı",
+    "image": "/categories/ozel-tatli.jpg",
+    "description": "Özel Tatlı kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "opw51nxqv",
+    "name": "Ortaya Lezzet",
+    "image": "/categories/ortaya-lezzet.jpg",
+    "description": "Ortaya Lezzet kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "icv8ek25b",
+    "name": "Sütlü Tatlı",
+    "image": "/categories/sutlu-tatli.jpg",
+    "description": "Sütlü Tatlı kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "inmoo8zid",
+    "name": "Pasta",
+    "image": "/categories/pasta.jpg",
+    "description": "Pasta kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "3n89nah2u",
+    "name": "Baklava",
+    "image": "/categories/baklava.jpg",
+    "description": "Baklava kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "vxj1sqdfq",
+    "name": "Klasik Kahveler",
+    "image": "/categories/klasik-kahveler.jpg",
+    "description": "Klasik Kahveler kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "pbntv3gpe",
+    "name": "Türk Kahveleri",
+    "image": "/categories/turk-kahveleri.jpg",
+    "description": "Türk Kahveleri kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "8dffahln8",
+    "name": "Filtre Kahveler",
+    "image": "/categories/filtre-kahveler.jpg",
+    "description": "Filtre Kahveler kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "9c5sqj9id",
+    "name": "Dünya Kahveleri",
+    "image": "/categories/dunya-kahveleri.jpg",
+    "description": "Dünya Kahveleri kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "zlw1a13cg",
+    "name": "Çay-Bitki Çayları",
+    "image": "/categories/cay-bitki-caylari.jpg",
+    "description": "Çay-Bitki Çayları kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "h0ct1xod7",
+    "name": "Kış Modları",
+    "image": "/categories/kis-modlari.jpg",
+    "description": "Kış Modları kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "6wc656pp3",
+    "name": "Soğuk Kahveler",
+    "image": "/categories/soguk-kahveler.jpg",
+    "description": "Soğuk Kahveler kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "opskm72cr",
+    "name": "Limonata ve Freshers",
+    "image": "/categories/limonata-ve-freshers.jpg",
+    "description": "Limonata ve Freshers kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "rpz61joxx",
+    "name": "Bubble Tea",
+    "image": "/categories/bubble-tea.jpg",
+    "description": "Bubble Tea kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "uab3a65lq",
+    "name": "Frozen",
+    "image": "/categories/frozen.jpg",
+    "description": "Frozen kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "ucc3uq3j2",
+    "name": "Milkshake",
+    "image": "/categories/milkshake.jpg",
+    "description": "Milkshake kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "8r35mdioh",
+    "name": "Smoothies",
+    "image": "/categories/smoothies.jpg",
+    "description": "Smoothies kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "5dv0c22om",
+    "name": "Meşrubatlar",
+    "image": "/categories/mesrubatlar.jpg",
+    "description": "Meşrubatlar kategorisindeki lezzetli ürünlerimiz"
+  },
+  {
+    "id": "b0cb0evji",
+    "name": "Dondurma",
+    "image": "/categories/dondurma.jpg",
+    "description": "Dondurma kategorisindeki lezzetli ürünlerimiz"
+  }
+]
