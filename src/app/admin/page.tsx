@@ -2,8 +2,8 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Yönetim Paneli - Kahve Orman Coffee & Bistro',
-  description: 'Kahve Orman Coffee & Bistro yönetim paneli',
+  title: 'Yönetim Paneli - Kahve Orman',
+  description: 'Kahve Orman yönetim paneli',
 }
 
 export default function AdminPage() {

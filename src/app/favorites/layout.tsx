@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Favorilerim - Kahve Orman Coffee & Bistro',
-  description: 'Kahve Orman Coffee & Bistro favori ürünlerim sayfası',
+  title: 'Favorilerim - Kahve Orman',
+  description: 'Kahve Orman favori ürünlerim sayfası',
 }
 
 export default function FavoritesLayout({

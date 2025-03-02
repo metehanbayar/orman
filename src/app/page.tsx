@@ -466,7 +466,7 @@ export default function HomePage() {
           >
             <Image
               src="/logo.png"
-              alt="Kahve Orman Coffee & Bistro"
+              alt="Kahve Orman"
               width={200}
               height={200}
               className="relative drop-shadow-xl rounded-full bg-white/10 backdrop-blur-sm p-2"
@@ -482,7 +482,7 @@ export default function HomePage() {
             className="text-center relative z-10"
           >
             <h1 className="text-4xl font-bold mb-4 text-white drop-shadow-lg">
-              Kahve Orman Coffee & Bistro
+              Kahve Orman
             </h1>
             <div className="relative">
               <p className="text-xl font-medium text-white/90 mb-2">
@@ -518,7 +518,7 @@ export default function HomePage() {
               className="text-xl sm:text-2xl font-bold text-[#EE9621] hover:opacity-80 transition-opacity flex items-center gap-2"
             >
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#EE9621] to-[#4C4B1F]">
-                Kahve Orman Coffee & Bistro
+                Kahve Orman
               </span>
             </div>
             <nav className="flex items-center gap-3">
@@ -827,7 +827,7 @@ export default function HomePage() {
           </div>
           <div className="mt-12 pt-8 border-t border-pink-100 text-center">
             <p className="text-gray-500 text-sm">
-              © 2024 Kahve Orman Coffee & Bistro. Tüm hakları saklıdır.
+              © 2024 Kahve Orman. Tüm hakları saklıdır.
             </p>
           </div>
         </div>

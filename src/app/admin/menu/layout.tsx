@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Menü Yönetimi - Kahve Orman Coffee & Bistro',
-  description: 'Kahve Orman Coffee & Bistro menü yönetimi sayfası',
+  title: 'Menü Yönetimi - Kahve Orman',
+  description: 'Kahve Orman menü yönetimi sayfası',
 }
 
 export default function MenuLayout({

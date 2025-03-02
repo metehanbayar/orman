@@ -52,7 +52,7 @@ export default function FavoritesPage() {
               className="text-xl sm:text-2xl font-bold text-[#ef991e] hover:opacity-80 transition-opacity flex items-center gap-2"
             >
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#ef991e] to-pink-400">
-                Kahve Orman Coffee & Bistro
+                Kahve Orman
               </span>
             </Link>
             <nav className="flex items-center gap-3">
@@ -145,7 +145,7 @@ export default function FavoritesPage() {
       <footer className="bg-white border-t border-pink-100">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <p className="text-center text-gray-500 text-sm">
-            © 2024 Kahve Orman Coffee & Bistro. Tüm hakları saklıdır.
+            © 2024 Kahve Orman. Tüm hakları saklıdır.
           </p>
         </div>
       </footer>
