@@ -26,17 +26,17 @@ WORKDIR /app
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Sistem kullanıcısı ve grubu oluştur
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+
+# Gerekli dizinleri oluştur ve izinleri ayarla
+RUN mkdir -p /app/data /app/public/categories /app/public/dishes \
+    && chown -R nextjs:nodejs /app
 
 COPY --from=builder /app/public ./public
-
-# Standalone output
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# Data dizini oluştur ve izinleri ayarla
-RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
 
 USER nextjs
 

@@ -14,12 +14,18 @@ services:
       - MSSQL_SERVER=${MSSQL_SERVER}
       - MSSQL_DATABASE=${MSSQL_DATABASE}
     volumes:
-      - ./data:/app/data
-      - ./public/dishes:/app/public/dishes
+      - app_data:/app/data
+      - app_dishes:/app/public/dishes
+      - app_categories:/app/public/categories
     restart: unless-stopped
     # Debug için komut satırı çıktılarını daha detaylı göster
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
-        max-file: "3" 
+        max-file: "3"
+
+volumes:
+  app_data:
+  app_dishes:
+  app_categories: 
