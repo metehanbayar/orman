@@ -124,6 +124,8 @@ export default function MenuPage() {
       if (selectedImage) {
         const imageFormData = new FormData()
         imageFormData.append('file', selectedImage)
+        imageFormData.append('type', 'dishes')
+        
         const uploadResponse = await fetch('/api/upload', {
           method: 'POST',
           body: imageFormData
@@ -132,8 +134,13 @@ export default function MenuPage() {
         if (!uploadResponse.ok) {
           throw new Error('Resim yüklenirken bir hata oluştu')
         }
-        
-        imagePath = `/dishes/${selectedImage.name}`
+
+        const uploadResult = await uploadResponse.json()
+        if (!uploadResult.success) {
+          throw new Error('Resim yüklenirken bir hata oluştu')
+        }
+
+        imagePath = uploadResult.path
       }
 
       const category = formData.get('category')?.toString() || ''
@@ -231,6 +238,8 @@ export default function MenuPage() {
       if (selectedImage) {
         const imageFormData = new FormData()
         imageFormData.append('file', selectedImage)
+        imageFormData.append('type', 'dishes')
+        
         const uploadResponse = await fetch('/api/upload', {
           method: 'POST',
           body: imageFormData
@@ -239,8 +248,13 @@ export default function MenuPage() {
         if (!uploadResponse.ok) {
           throw new Error('Resim yüklenirken bir hata oluştu')
         }
-        
-        imagePath = `/dishes/${selectedImage.name}`
+
+        const uploadResult = await uploadResponse.json()
+        if (!uploadResult.success) {
+          throw new Error('Resim yüklenirken bir hata oluştu')
+        }
+
+        imagePath = uploadResult.path
       }
 
       // Özellikleri topla

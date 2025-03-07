@@ -70,7 +70,7 @@ export default function CategoriesPage() {
       if (selectedImage) {
         const formData = new FormData()
         formData.append('file', selectedImage)
-        formData.append('category', newCategory.name || '')
+        formData.append('type', 'categories')
         
         const uploadResponse = await fetch('/api/upload', {
           method: 'POST',
@@ -80,6 +80,17 @@ export default function CategoriesPage() {
         if (!uploadResponse.ok) {
           throw new Error('Resim yüklenirken bir hata oluştu')
         }
+
+        const uploadResult = await uploadResponse.json()
+        if (!uploadResult.success) {
+          throw new Error('Resim yüklenirken bir hata oluştu')
+        }
+
+        // Yüklenen resmin yolunu güncelle
+        setNewCategory(prev => ({
+          ...prev,
+          image: uploadResult.path
+        }))
       }
 
       // Sonra kategoriyi kaydet
