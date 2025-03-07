@@ -104,13 +104,9 @@ export async function POST(request: Request) {
   try {
     console.log('POST isteği alındı')
     const product = await request.json()
-<<<<<<< HEAD
     
     // Vercel ortamında çalışıyoruz mu kontrol et
     const isVercel = process.env.VERCEL === '1' || process.env.VERCEL === 'true' || process.env.VERCEL === 'production'
-=======
-    const products = await readProducts()
->>>>>>> parent of 910cebd (api)
     
     // Yeni ürüne benzersiz bir ID ata
     const newProduct = {
@@ -122,7 +118,6 @@ export async function POST(request: Request) {
       }))
     }
     
-<<<<<<< HEAD
     if (isVercel) {
       // Vercel ortamında dosya yazma işlemi yapamıyoruz
       // Bu nedenle sadece başarılı yanıt dönüyoruz
@@ -141,8 +136,6 @@ export async function POST(request: Request) {
     }
     
     const products = await readProducts()
-=======
->>>>>>> parent of 910cebd (api)
     products.push(newProduct)
     await writeProducts(products)
     
