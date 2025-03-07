@@ -9,13 +9,16 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorDetail, setErrorDetail] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorDetail('');
 
     try {
+      console.log(`Giriş denenecek: ${username}`);
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -24,16 +27,20 @@ export default function LoginPage() {
         body: JSON.stringify({ username, password }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Giriş başarısız');
+        console.error('Giriş hatası:', data);
+        throw new Error(data.error || 'Giriş başarısız');
       }
 
       toast.success('Giriş başarılı');
       router.push('/admin');
       router.refresh();
-    } catch (error) {
+    } catch (error: any) {
       toast.error('Kullanıcı adı veya şifre hatalı');
       console.error('Giriş hatası:', error);
+      setErrorDetail(error.message || 'Bilinmeyen hata');
     } finally {
       setLoading(false);
     }
@@ -91,6 +98,20 @@ export default function LoginPage() {
             >
               {loading ? 'Giriş Yapılıyor...' : 'Giriş Yap'}
             </button>
+          </div>
+
+          {errorDetail && (
+            <div className="mt-2 text-sm text-red-600 bg-red-50 p-2 rounded">
+              Hata detayı: {errorDetail}
+            </div>
+          )}
+
+          <div className="mt-4 text-xs text-gray-500 p-2 bg-gray-50 rounded">
+            <p>Varsayılan bilgiler:</p>
+            <ul className="list-disc ml-4">
+              <li>Kullanıcı adı: admin</li>
+              <li>Şifre: .env dosyasında tanımlanan şifre</li>
+            </ul>
           </div>
         </form>
       </div>

@@ -19,6 +19,10 @@ services:
       - MSSQL_SERVER=${MSSQL_SERVER}
       - MSSQL_DATABASE=${MSSQL_DATABASE}
       - HOSTNAME=0.0.0.0
+      # Admin kimlik bilgileri
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=Lila*172839
+      - JWT_SECRET=lila_orman_secret_key_2024_token_encryption
     volumes:
       - ./data:/app/data:rw
       - ./public/dishes:/app/public/dishes:rw
