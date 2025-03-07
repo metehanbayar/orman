@@ -1,6 +1,29 @@
-# Derleme çıktıları
-.next/
-out/
+# Dependencies
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Next.js
+.next
+out
+
+# Misc
+.git
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+README.md
+.gitignore
+.eslintrc.json
+.prettierrc
+*.md
+
+# Data ve resim dosyaları (volume olarak bağlanacak)
+data
+public/dishes
 
 # Bağımlılıklar
 node_modules/
@@ -13,9 +36,6 @@ node_modules/
 # Geliştirici dosyaları
 .vscode/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # Ortam değişkenleri
 .env

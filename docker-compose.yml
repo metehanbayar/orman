@@ -1,33 +1,21 @@
 version: '3.8'
 
 services:
-  qr-menu:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: qr-menu
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_SERVER=${DB_SERVER}
-      - DB_NAME=${DB_NAME}
       - MSSQL_USER=${MSSQL_USER}
       - MSSQL_PASSWORD=${MSSQL_PASSWORD}
       - MSSQL_SERVER=${MSSQL_SERVER}
       - MSSQL_DATABASE=${MSSQL_DATABASE}
-      - HOSTNAME=0.0.0.0
-      # Admin kimlik bilgileri
-      - ADMIN_USERNAME=admin
-      - ADMIN_PASSWORD=Lila*172839
-      - JWT_SECRET=lila_orman_secret_key_2024_token_encryption
     volumes:
       - ./data:/app/data
       - ./public/dishes:/app/public/dishes
-      - ./public:/app/public
-    user: "node"
     restart: unless-stopped
     # Debug için komut satırı çıktılarını daha detaylı göster
     logging:

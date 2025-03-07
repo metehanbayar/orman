@@ -32,11 +32,7 @@ interface Product {
 async function readProducts(): Promise<Product[]> {
   try {
     // data klasörünü oluştur
-    try {
-      await fs.mkdir(path.join(process.cwd(), 'data'), { recursive: true })
-    } catch (error) {
-      console.error('Data klasörü oluşturma hatası:', error)
-    }
+    await fs.mkdir(path.join(process.cwd(), 'data'), { recursive: true })
     
     try {
       const data = await fs.readFile(PRODUCTS_FILE, 'utf-8')
@@ -44,11 +40,7 @@ async function readProducts(): Promise<Product[]> {
     } catch (error) {
       console.error('Ürünleri okuma hatası:', error)
       // Dosya yoksa boş bir dizi oluştur ve kaydet
-      try {
-        await fs.writeFile(PRODUCTS_FILE, '[]')
-      } catch (writeError) {
-        console.error('Boş ürün dosyası oluşturma hatası:', writeError)
-      }
+      await fs.writeFile(PRODUCTS_FILE, '[]')
       return []
     }
   } catch (error) {
@@ -61,11 +53,7 @@ async function readProducts(): Promise<Product[]> {
 async function writeProducts(products: Product[]) {
   try {
     // data klasörünü oluştur
-    try {
-      await fs.mkdir(path.join(process.cwd(), 'data'), { recursive: true })
-    } catch (error) {
-      console.error('Data klasörü oluşturma hatası:', error)
-    }
+    await fs.mkdir(path.join(process.cwd(), 'data'), { recursive: true })
     
     // Dosyayı geçici olarak kaydet
     const tempFile = `${PRODUCTS_FILE}.tmp`
@@ -77,7 +65,7 @@ async function writeProducts(products: Product[]) {
     } catch {
       // rename başarısız olursa, kopyala ve sil yöntemini dene
       await fs.copyFile(tempFile, PRODUCTS_FILE)
-      await fs.unlink(tempFile).catch((e: unknown) => console.error('Geçici dosya silme hatası:', e))
+      await fs.unlink(tempFile)
     }
   } catch (error) {
     console.error('Ürünleri kaydetme hatası:', error)
@@ -85,8 +73,8 @@ async function writeProducts(products: Product[]) {
   }
 }
 
-export const dynamic = 'force-dynamic' // Cache'i devre dışı bırak
-export const revalidate = 0 // Cache'i devre dışı bırak
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function GET() {
   try {
@@ -105,9 +93,6 @@ export async function POST(request: Request) {
     console.log('POST isteği alındı')
     const product = await request.json()
     
-    // Vercel ortamında çalışıyoruz mu kontrol et
-    const isVercel = process.env.VERCEL === '1' || process.env.VERCEL === 'true' || process.env.VERCEL === 'production'
-    
     // Yeni ürüne benzersiz bir ID ata
     const newProduct = {
       ...product,
@@ -116,23 +101,6 @@ export async function POST(request: Request) {
         ...variation,
         id: Math.random().toString(36).substr(2, 9)
       }))
-    }
-    
-    if (isVercel) {
-      // Vercel ortamında dosya yazma işlemi yapamıyoruz
-      // Bu nedenle sadece başarılı yanıt dönüyoruz
-      console.log('Vercel ortamında ürün ekleme isteği:', newProduct)
-      return new NextResponse(JSON.stringify({
-        ...newProduct,
-        success: true,
-        message: 'Vercel ortamında ürün ekleme işlemi simüle edildi'
-      }), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-store, max-age=0',
-        },
-      })
     }
     
     const products = await readProducts()

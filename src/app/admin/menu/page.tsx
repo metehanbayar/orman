@@ -183,6 +183,7 @@ export default function MenuPage() {
         price: formData.get('price')?.toString() || '',
         category,
         image: imagePath,
+        categoryImage: category ? categories.find(c => c.id === category)?.image || '' : '',
         features,
         variations: variations.length > 0 ? variations : undefined,
         mssqlProductName: formData.get('mssqlProductName')?.toString() || ''
@@ -284,6 +285,7 @@ export default function MenuPage() {
         price: formData.get('price')?.toString(),
         category: formData.get('category')?.toString(),
         image: imagePath,
+        categoryImage: formData.get('category')?.toString() ? categories.find(c => c.id === formData.get('category')?.toString())?.image || '' : '',
         features,
         variations: variations.length > 0 ? variations : undefined,
         mssqlProductName: formData.get('mssqlProductName')?.toString()

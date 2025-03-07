@@ -3,6 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   images: {
     domains: ['placehold.co'],
+    unoptimized: true // Linux sunucuda optimizasyon sorunlarını önlemek için
   },
   env: {
     MSSQL_USER: process.env.MSSQL_USER,
@@ -15,8 +16,6 @@ const nextConfig = {
       allowedOrigins: ['*']
     }
   },
-  // Google Fonts kullanımını devre dışı bırak
-  optimizeFonts: false,
   // PWA config
   headers: async () => {
     return [

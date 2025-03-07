@@ -1,29 +1,48 @@
-FROM node:18-alpine
+FROM node:18-alpine AS base
 
+# Dependencies
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Gerekli paketleri kopyala
-COPY package*.json ./
+# Install dependencies
+COPY package.json package-lock.json* ./
+RUN npm ci
 
-# Bağımlılıkları yükle
-RUN npm install
-
-# Uygulama dosyalarını kopyala
+# Builder
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Dizinleri oluştur ve izinleri ayarla
-RUN mkdir -p /app/public/dishes /app/data \
-    && chown -R node:node /app \
-    && chmod -R 755 /app/public/dishes /app/data
-
-# node kullanıcısına geç
-USER node
-
-# Uygulamayı derle
+# Next.js build
+ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build
 
-# Portu aç
+# Runner
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
+
+# Standalone output
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Data dizini oluştur ve izinleri ayarla
+RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
+
+USER nextjs
+
 EXPOSE 3000
 
-# Uygulamayı başlat
-CMD ["npm", "start"] 
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
+
+CMD ["node", "server.js"] 
