@@ -1,9 +1,5 @@
 FROM node:20-alpine AS base
 
-# DNS ve bağlantı sorunları için
-RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf
-RUN echo "nameserver 8.8.4.4" >> /etc/resolv.conf
-
 # Çalışma dizinini ayarla
 WORKDIR /app
 

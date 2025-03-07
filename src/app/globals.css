@@ -240,6 +240,43 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Yerel font tanımlamaları */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/inter-regular.woff2') format('woff2'),
+       local('Arial');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/inter-medium.woff2') format('woff2'),
+       local('Arial');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/inter-semibold.woff2') format('woff2'),
+       local('Arial');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/inter-bold.woff2') format('woff2'),
+       local('Arial');
+}
+
 /* Mevcut Google Fonts kullanan kısmı kaldıralım veya yerel font ile değiştirelim */
 @font-face {
   font-family: 'Inter';
