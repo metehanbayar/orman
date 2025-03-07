@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  // API istekleri için CORS başlıklarını ekle
+  // Eğer API isteği ise CORS başlıkları ekle
   if (request.nextUrl.pathname.startsWith('/api/')) {
     const origin = request.headers.get('origin') || '*'
     
@@ -30,6 +30,40 @@ export function middleware(request: NextRequest) {
     return response
   }
   
+  // Admin sayfaları için yetkilendirme kontrolü
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    // Login sayfasına erişim kontrol edilmez
+    if (request.nextUrl.pathname === '/login') {
+      return NextResponse.next()
+    }
+    
+    const authToken = request.cookies.get('auth_token')?.value
+    
+    // Token yoksa login sayfasına yönlendir
+    if (!authToken) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+    
+    try {
+      // Token geçerliliğini kontrol et
+      const tokenData = JSON.parse(Buffer.from(authToken, 'base64').toString())
+      
+      // Token süresi dolmuş mu kontrol et
+      if (tokenData.exp < Math.floor(Date.now() / 1000)) {
+        return NextResponse.redirect(new URL('/login', request.url))
+      }
+      
+      // Kullanıcı admin mi kontrol et
+      if (tokenData.role !== 'admin') {
+        return NextResponse.redirect(new URL('/login', request.url))
+      }
+      
+    } catch (error) {
+      console.error('Token doğrulama hatası:', error)
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+  }
+  
   return NextResponse.next()
 }
 
@@ -37,5 +71,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/api/:path*',
+    '/admin/:path*',
   ],
 } 
