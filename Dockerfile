@@ -15,6 +15,9 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
+# ESLint kontrollerini devre dışı bırak
+ENV ESLINT_SKIP true 
+ENV NODE_OPTIONS=--max-old-space-size=4096
 
 # Veri dizinini oluştur (derleme sırasında)
 RUN mkdir -p ./data

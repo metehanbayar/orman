@@ -43,7 +43,7 @@ async function readProducts(): Promise<Product[]> {
     try {
       await fs.access(PRODUCTS_FILE);
       console.log('Products file exists');
-    } catch (err) {
+    } catch (_) {
       console.error('Products file does not exist, creating empty file');
       await fs.mkdir(path.dirname(PRODUCTS_FILE), { recursive: true });
       await fs.writeFile(PRODUCTS_FILE, '[]');
