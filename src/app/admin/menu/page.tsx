@@ -515,7 +515,7 @@ export default function MenuPage() {
       setProducts(updatedProducts)
       
       if (updatedCount === 0) {
-        toast.info('Güncellenecek ürün bulunamadı')
+        toast.success('Güncellenecek ürün bulunamadı')
       } else if (failedProducts.length > 0) {
         toast.warning(`${updatedCount} ürünün fiyatı güncellendi, ancak şu ürünler güncellenemedi: ${failedProducts.join(', ')}`)
       } else {
