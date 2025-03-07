@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+// Google fonts import'unu kaldırıyoruz
+// import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import Script from 'next/script';
 import AddToHomeScreen from '@/components/AddToHomeScreen';
 
-const inter = Inter({ subsets: ["latin"] });
+// Google Fonts'a olan bağımlılığı kaldırıyoruz
+// const inter = Inter({ subsets: ["latin"] });
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -59,7 +61,7 @@ export default function RootLayout({
         <meta name="mobile-agent" content="format=html5" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
-      <body className={inter.className}>
+      <body className="font-sans">
         <Toaster position="top-center" />
         <AddToHomeScreen />
         <main className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-gray-50">

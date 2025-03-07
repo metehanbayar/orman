@@ -15,6 +15,8 @@ const nextConfig = {
       allowedOrigins: ['*']
     }
   },
+  // Google Fonts kullanımını devre dışı bırak
+  optimizeFonts: false,
   // PWA config
   headers: async () => {
     return [
