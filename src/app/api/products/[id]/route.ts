@@ -37,26 +37,8 @@ const PRODUCTS_FILE = path.join(process.cwd(), 'data', 'products.json')
 // Ürünleri dosyadan oku
 async function readProducts(): Promise<Product[]> {
   try {
-    // data klasörünü oluştur
-    try {
-      await fs.mkdir(path.join(process.cwd(), 'data'), { recursive: true })
-    } catch (error) {
-      console.error('Data klasörü oluşturma hatası:', error)
-    }
-    
-    try {
-      const data = await fs.readFile(PRODUCTS_FILE, 'utf-8')
-      return JSON.parse(data)
-    } catch (error) {
-      console.error('Ürünleri okuma hatası:', error)
-      // Dosya yoksa boş bir dizi oluştur ve kaydet
-      try {
-        await fs.writeFile(PRODUCTS_FILE, '[]')
-      } catch (writeError) {
-        console.error('Boş ürün dosyası oluşturma hatası:', writeError)
-      }
-      return []
-    }
+    const data = await fs.readFile(PRODUCTS_FILE, 'utf-8')
+    return JSON.parse(data)
   } catch (error) {
     console.error('Ürünleri okuma hatası:', error)
     return []
@@ -66,25 +48,7 @@ async function readProducts(): Promise<Product[]> {
 // Ürünleri dosyaya kaydet
 async function writeProducts(products: Product[]) {
   try {
-    // data klasörünü oluştur
-    try {
-      await fs.mkdir(path.join(process.cwd(), 'data'), { recursive: true })
-    } catch (error) {
-      console.error('Data klasörü oluşturma hatası:', error)
-    }
-    
-    // Dosyayı geçici olarak kaydet
-    const tempFile = `${PRODUCTS_FILE}.tmp`
-    await fs.writeFile(tempFile, JSON.stringify(products, null, 2))
-    
-    // Geçici dosyayı asıl dosyaya taşı (atomik işlem)
-    try {
-      await fs.rename(tempFile, PRODUCTS_FILE)
-    } catch {
-      // rename başarısız olursa, kopyala ve sil yöntemini dene
-      await fs.copyFile(tempFile, PRODUCTS_FILE)
-      await fs.unlink(tempFile).catch((e: unknown) => console.error('Geçici dosya silme hatası:', e))
-    }
+    await fs.writeFile(PRODUCTS_FILE, JSON.stringify(products, null, 2))
   } catch (error) {
     console.error('Ürünleri kaydetme hatası:', error)
     throw error
@@ -94,18 +58,6 @@ async function writeProducts(products: Product[]) {
 export async function DELETE(request: NextRequest) {
   try {
     const id = request.nextUrl.pathname.split('/').pop()
-    
-    // Vercel ortamında çalışıyoruz mu kontrol et
-    const isVercel = process.env.VERCEL === '1' || process.env.VERCEL === 'true' || process.env.VERCEL === 'production'
-    
-    if (isVercel) {
-      console.log('Vercel ortamında ürün silme isteği:', id)
-      return NextResponse.json({ 
-        success: true,
-        message: 'Vercel ortamında ürün silme işlemi simüle edildi'
-      })
-    }
-    
     const products = await readProducts()
     const productIndex = products.findIndex((p) => p.id === id)
     
@@ -137,20 +89,6 @@ export async function PUT(request: NextRequest) {
     const id = request.nextUrl.pathname.split('/').pop()
     const data = await request.json() as Partial<Product>
 
-    // Vercel ortamında çalışıyoruz mu kontrol et
-    const isVercel = process.env.VERCEL === '1' || process.env.VERCEL === 'true' || process.env.VERCEL === 'production'
-    
-    if (isVercel) {
-      console.log('Vercel ortamında ürün güncelleme isteği:', id, data)
-      return NextResponse.json({ 
-        ...data, 
-        id,
-        success: true,
-        message: 'Vercel ortamında ürün güncellemesi simüle edildi'
-      })
-    }
-    
-    // Yerel ortamda normal işlemi gerçekleştir
     const products = await readProducts()
     const productIndex = products.findIndex((p) => p.id === id)
     
