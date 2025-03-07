@@ -392,7 +392,7 @@ export default function MenuPage() {
 
     try {
       const updatedProducts = []
-      let failedProducts = []
+      const failedProducts = []
       
       for (const product of products) {
         if (selectedProducts.has(product.id)) {
@@ -462,12 +462,12 @@ export default function MenuPage() {
       // 2. Eşleşen ürünleri bul ve güncelle
       const updatedProducts = [...products]
       let updatedCount = 0
-      let failedProducts = []
+      const failedProducts = []
 
       for (const product of updatedProducts) {
         // MSSQL ürün adı tanımlanmışsa eşleştir
         const mssqlProductName = product.mssqlProductName || product.name
-        const mssqlProduct = mssqlProducts.find((p: any) => p.name === mssqlProductName)
+        const mssqlProduct = mssqlProducts.find((p: {name: string; price: string}) => p.name === mssqlProductName)
 
         if (mssqlProduct) {
           const newPrice = mssqlProduct.price.toString()
