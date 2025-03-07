@@ -1,62 +1,29 @@
-FROM node:20-alpine AS base
+FROM node:18-alpine
 
-# Çalışma dizinini ayarla
 WORKDIR /app
 
-# Bağımlılıkları kopyala
-COPY package.json package-lock.json ./
+# Gerekli paketleri kopyala
+COPY package*.json ./
 
-# Geliştirme aşaması
-FROM base AS deps
-RUN npm ci
+# Bağımlılıkları yükle
+RUN npm install
 
-# Derleme aşaması
-FROM base AS builder
-COPY --from=deps /app/node_modules ./node_modules
+# Uygulama dosyalarını kopyala
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED 1
-# ESLint kontrollerini devre dışı bırak
-ENV ESLINT_SKIP true 
-ENV NODE_OPTIONS=--max-old-space-size=4096
 
-# Veri dizinini oluştur (derleme sırasında)
-RUN mkdir -p ./data
-RUN echo "[]" > ./data/products.json
-RUN echo "[]" > ./data/categories.json
+# Dizinleri oluştur ve izinleri ayarla
+RUN mkdir -p /app/public/dishes /app/data \
+    && chown -R node:node /app \
+    && chmod -R 755 /app/public/dishes /app/data
 
-# Next.js uygulamasını derle
+# node kullanıcısına geç
+USER node
+
+# Uygulamayı derle
 RUN npm run build
 
-# Çalıştırma aşaması
-FROM base AS runner
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
-
-# Gereksiz dosyaları içermeyen daha minimal bir üretim ortamı
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# Paylaşılan dosya izinleri için data dizini oluştur
-RUN mkdir -p /app/data
-RUN mkdir -p /app/public/dishes
-RUN chown -R nextjs:nodejs /app
-
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder /app/data/ ./data/
-
-# Data dizini ve uploads dizinlerine yazma izni ver
-RUN chmod 777 /app/data
-RUN chmod 777 /app/public/dishes
-
-USER nextjs
-
+# Portu aç
 EXPOSE 3000
 
-ENV PORT 3000
-
-# Veri dizinini kalıcı depolama için volume olarak tanımla
-VOLUME ["/app/data", "/app/public/dishes"]
-
-CMD ["node", "server.js"] 
+# Uygulamayı başlat
+CMD ["npm", "start"] 

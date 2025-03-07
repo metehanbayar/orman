@@ -26,6 +26,8 @@ services:
     volumes:
       - ./data:/app/data:rw
       - ./public/dishes:/app/public/dishes:rw
+      - ./public:/app/public:rw
+    user: "1001:1001"  # nextjs kullanıcısı
     restart: unless-stopped
     # Debug için komut satırı çıktılarını daha detaylı göster
     logging:
