@@ -300,6 +300,13 @@ export default function MenuPage() {
         variations: variations.length > 0 ? variations : undefined
       }
 
+      // Önce UI'ı güncelle
+      setProducts(prevProducts => prevProducts.map(p => p.id === updatedProduct.id ? updatedProduct : p))
+      setShowEditModal(false)
+      setEditingProduct(null)
+      setSelectedImage(null)
+      
+      // Sonra API'ye gönder
       const response = await fetch(`/api/products/${updatedProduct.id}`, {
         method: 'PUT',
         headers: {
@@ -308,17 +315,24 @@ export default function MenuPage() {
         body: JSON.stringify(updatedProduct)
       })
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error('API yanıtı başarısız:', errorText)
-        throw new Error(`Ürün güncellenirken bir hata oluştu: ${errorText}`)
+      let responseData
+      try {
+        responseData = await response.json()
+      } catch (e) {
+        console.error('API yanıtı JSON olarak ayrıştırılamadı:', e)
       }
 
-      setProducts(prevProducts => prevProducts.map(p => p.id === updatedProduct.id ? updatedProduct : p))
-      setShowEditModal(false)
-      setEditingProduct(null)
-      setSelectedImage(null)
-      toast.success('Ürün başarıyla güncellendi')
+      if (!response.ok) {
+        console.error('API yanıtı başarısız:', responseData || await response.text())
+        // API başarısız olsa bile UI güncellenmiş olacak
+        toast.error('Ürün yerel olarak güncellendi, ancak sunucuda güncellenemedi. Sayfa yenilendiğinde değişiklikler kaybolabilir.')
+      } else {
+        if (responseData?.message?.includes('Vercel')) {
+          toast.success('Ürün yerel olarak güncellendi (Vercel ortamında)')
+        } else {
+          toast.success('Ürün başarıyla güncellendi')
+        }
+      }
     } catch (error) {
       console.error('Ürün güncelleme hatası:', error)
       toast.error(`Ürün güncellenirken bir hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`)
@@ -517,7 +531,7 @@ export default function MenuPage() {
       if (updatedCount === 0) {
         toast.success('Güncellenecek ürün bulunamadı')
       } else if (failedProducts.length > 0) {
-        toast.warning(`${updatedCount} ürünün fiyatı güncellendi, ancak şu ürünler güncellenemedi: ${failedProducts.join(', ')}`)
+        toast.error(`${updatedCount} ürünün fiyatı güncellendi, ancak şu ürünler güncellenemedi: ${failedProducts.join(', ')}`)
       } else {
         toast.success(`${updatedCount} ürünün fiyatı güncellendi`)
       }

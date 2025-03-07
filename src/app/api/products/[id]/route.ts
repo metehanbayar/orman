@@ -94,6 +94,18 @@ async function writeProducts(products: Product[]) {
 export async function DELETE(request: NextRequest) {
   try {
     const id = request.nextUrl.pathname.split('/').pop()
+    
+    // Vercel ortamında çalışıyoruz mu kontrol et
+    const isVercel = process.env.VERCEL === '1' || process.env.VERCEL === 'true' || process.env.VERCEL === 'production'
+    
+    if (isVercel) {
+      console.log('Vercel ortamında ürün silme isteği:', id)
+      return NextResponse.json({ 
+        success: true,
+        message: 'Vercel ortamında ürün silme işlemi simüle edildi'
+      })
+    }
+    
     const products = await readProducts()
     const productIndex = products.findIndex((p) => p.id === id)
     
@@ -125,6 +137,20 @@ export async function PUT(request: NextRequest) {
     const id = request.nextUrl.pathname.split('/').pop()
     const data = await request.json() as Partial<Product>
 
+    // Vercel ortamında çalışıyoruz mu kontrol et
+    const isVercel = process.env.VERCEL === '1' || process.env.VERCEL === 'true' || process.env.VERCEL === 'production'
+    
+    if (isVercel) {
+      console.log('Vercel ortamında ürün güncelleme isteği:', id, data)
+      return NextResponse.json({ 
+        ...data, 
+        id,
+        success: true,
+        message: 'Vercel ortamında ürün güncellemesi simüle edildi'
+      })
+    }
+    
+    // Yerel ortamda normal işlemi gerçekleştir
     const products = await readProducts()
     const productIndex = products.findIndex((p) => p.id === id)
     

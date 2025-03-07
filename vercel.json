@@ -7,6 +7,6 @@
     }
   ],
   "env": {
-    "VERCEL": "1"
+    "VERCEL": "true"
   }
 } 
