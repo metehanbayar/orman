@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  qr-menu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: qr-menu
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_SERVER=${DB_SERVER}
+      - DB_NAME=${DB_NAME}
+      - MSSQL_USER=${MSSQL_USER}
+      - MSSQL_PASSWORD=${MSSQL_PASSWORD}
+      - MSSQL_SERVER=${MSSQL_SERVER}
+      - MSSQL_DATABASE=${MSSQL_DATABASE}
+      - HOSTNAME=0.0.0.0
+    volumes:
+      - ./data:/app/data:rw
+      - ./public/dishes:/app/public/dishes:rw
+    restart: unless-stopped
+    # Debug için komut satırı çıktılarını daha detaylı göster
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3" 
