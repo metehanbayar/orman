@@ -32,14 +32,23 @@ interface Product {
 async function readProducts(): Promise<Product[]> {
   try {
     // data klasörünü oluştur
-    await fs.mkdir(path.join(process.cwd(), 'data'), { recursive: true })
+    try {
+      await fs.mkdir(path.join(process.cwd(), 'data'), { recursive: true })
+    } catch (error) {
+      console.error('Data klasörü oluşturma hatası:', error)
+    }
     
     try {
       const data = await fs.readFile(PRODUCTS_FILE, 'utf-8')
       return JSON.parse(data)
-    } catch {
+    } catch (error) {
+      console.error('Ürünleri okuma hatası:', error)
       // Dosya yoksa boş bir dizi oluştur ve kaydet
-      await fs.writeFile(PRODUCTS_FILE, '[]')
+      try {
+        await fs.writeFile(PRODUCTS_FILE, '[]')
+      } catch (writeError) {
+        console.error('Boş ürün dosyası oluşturma hatası:', writeError)
+      }
       return []
     }
   } catch (error) {
@@ -51,8 +60,25 @@ async function readProducts(): Promise<Product[]> {
 // Ürünleri dosyaya kaydet
 async function writeProducts(products: Product[]) {
   try {
-    await fs.mkdir(path.join(process.cwd(), 'data'), { recursive: true })
-    await fs.writeFile(PRODUCTS_FILE, JSON.stringify(products, null, 2))
+    // data klasörünü oluştur
+    try {
+      await fs.mkdir(path.join(process.cwd(), 'data'), { recursive: true })
+    } catch (error) {
+      console.error('Data klasörü oluşturma hatası:', error)
+    }
+    
+    // Dosyayı geçici olarak kaydet
+    const tempFile = `${PRODUCTS_FILE}.tmp`
+    await fs.writeFile(tempFile, JSON.stringify(products, null, 2))
+    
+    // Geçici dosyayı asıl dosyaya taşı (atomik işlem)
+    try {
+      await fs.rename(tempFile, PRODUCTS_FILE)
+    } catch (error) {
+      // rename başarısız olursa, kopyala ve sil yöntemini dene
+      await fs.copyFile(tempFile, PRODUCTS_FILE)
+      await fs.unlink(tempFile).catch(e => console.error('Geçici dosya silme hatası:', e))
+    }
   } catch (error) {
     console.error('Ürünleri kaydetme hatası:', error)
     throw error
@@ -78,9 +104,7 @@ export async function POST(request: Request) {
   try {
     console.log('POST isteği alındı')
     const product = await request.json()
-    
-    // Vercel ortamında çalışıyoruz mu kontrol et
-    const isVercel = process.env.VERCEL === '1'
+    const products = await readProducts()
     
     // Yeni ürüne benzersiz bir ID ata
     const newProduct = {
@@ -92,23 +116,6 @@ export async function POST(request: Request) {
       }))
     }
     
-    if (isVercel) {
-      // Vercel ortamında dosya yazma işlemi yapamıyoruz
-      // Bu nedenle sadece başarılı yanıt dönüyoruz
-      console.log('Vercel ortamında ürün ekleme isteği:', newProduct)
-      return new NextResponse(JSON.stringify({
-        ...newProduct,
-        message: 'Vercel ortamında ürün ekleme işlemi simüle edildi'
-      }), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-store, max-age=0',
-        },
-      })
-    }
-    
-    const products = await readProducts()
     products.push(newProduct)
     await writeProducts(products)
     

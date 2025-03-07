@@ -300,13 +300,6 @@ export default function MenuPage() {
         variations: variations.length > 0 ? variations : undefined
       }
 
-      // Önce UI'ı güncelle
-      setProducts(prevProducts => prevProducts.map(p => p.id === updatedProduct.id ? updatedProduct : p))
-      setShowEditModal(false)
-      setEditingProduct(null)
-      setSelectedImage(null)
-      
-      // Sonra API'ye gönder
       const response = await fetch(`/api/products/${updatedProduct.id}`, {
         method: 'PUT',
         headers: {
@@ -316,15 +309,19 @@ export default function MenuPage() {
       })
 
       if (!response.ok) {
-        console.error('API yanıtı başarısız:', await response.text())
-        // API başarısız olsa bile UI güncellenmiş olacak
-        toast.warning('Ürün yerel olarak güncellendi, ancak sunucuda güncellenemedi. Sayfa yenilendiğinde değişiklikler kaybolabilir.')
-      } else {
-        toast.success('Ürün başarıyla güncellendi')
+        const errorText = await response.text()
+        console.error('API yanıtı başarısız:', errorText)
+        throw new Error(`Ürün güncellenirken bir hata oluştu: ${errorText}`)
       }
+
+      setProducts(prevProducts => prevProducts.map(p => p.id === updatedProduct.id ? updatedProduct : p))
+      setShowEditModal(false)
+      setEditingProduct(null)
+      setSelectedImage(null)
+      toast.success('Ürün başarıyla güncellendi')
     } catch (error) {
       console.error('Ürün güncelleme hatası:', error)
-      toast.error('Ürün güncellenirken bir hata oluştu')
+      toast.error(`Ürün güncellenirken bir hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`)
     }
   }
 
@@ -395,7 +392,7 @@ export default function MenuPage() {
 
     try {
       const updatedProducts = []
-      let errorCount = 0
+      let failedProducts = []
       
       for (const product of products) {
         if (selectedProducts.has(product.id)) {
@@ -407,10 +404,6 @@ export default function MenuPage() {
             price: newPrice
           }
           
-          // Önce UI'ı güncelle
-          updatedProducts.push(updatedProduct)
-          
-          // Sonra API'ye gönder
           try {
             const response = await fetch(`/api/products/${product.id}`, {
               method: 'PUT',
@@ -421,12 +414,17 @@ export default function MenuPage() {
             })
             
             if (!response.ok) {
-              console.error(`${product.name} güncellenemedi:`, await response.text())
-              errorCount++
+              const errorText = await response.text()
+              console.error(`${product.name} güncellenemedi:`, errorText)
+              failedProducts.push(product.name)
+              updatedProducts.push(product) // Orijinal ürünü koru
+            } else {
+              updatedProducts.push(updatedProduct) // Güncellenmiş ürünü ekle
             }
           } catch (error) {
             console.error(`${product.id} için API hatası:`, error)
-            errorCount++
+            failedProducts.push(product.name)
+            updatedProducts.push(product) // Orijinal ürünü koru
           }
         } else {
           updatedProducts.push(product)
@@ -438,14 +436,14 @@ export default function MenuPage() {
       setSelectedProducts(new Set())
       setBulkPriceIncrease('')
       
-      if (errorCount > 0) {
-        toast.warning(`Ürünler yerel olarak güncellendi, ancak ${errorCount} ürün sunucuda güncellenemedi. Sayfa yenilendiğinde değişiklikler kaybolabilir.`)
+      if (failedProducts.length > 0) {
+        toast.error(`Şu ürünlerin fiyatları güncellenemedi: ${failedProducts.join(', ')}`)
       } else {
         toast.success('Fiyatlar başarıyla güncellendi')
       }
     } catch (error) {
       console.error('Toplu fiyat güncelleme hatası:', error)
-      toast.error('Fiyatlar güncellenirken bir hata oluştu')
+      toast.error(`Fiyatlar güncellenirken bir hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`)
     }
   }
 
@@ -464,7 +462,7 @@ export default function MenuPage() {
       // 2. Eşleşen ürünleri bul ve güncelle
       const updatedProducts = [...products]
       let updatedCount = 0
-      let errorCount = 0
+      let failedProducts = []
 
       for (const product of updatedProducts) {
         // MSSQL ürün adı tanımlanmışsa eşleştir
@@ -488,11 +486,6 @@ export default function MenuPage() {
             price: newPrice
           }
           
-          // Önce UI'ı güncelle
-          updatedProducts[productIndex] = updatedProduct
-          updatedCount++
-          
-          // Sonra API'ye gönder
           try {
             const response = await fetch(`/api/products/${product.id}`, {
               method: 'PUT',
@@ -503,14 +496,17 @@ export default function MenuPage() {
             })
 
             if (!response.ok) {
-              console.error(`${product.name} güncellenemedi:`, await response.text())
-              errorCount++
+              const errorText = await response.text()
+              console.error(`${product.name} güncellenemedi:`, errorText)
+              failedProducts.push(product.name)
             } else {
               console.log(`${product.name} güncellendi`)
+              updatedProducts[productIndex] = updatedProduct
+              updatedCount++
             }
           } catch (error) {
             console.error(`${product.name} güncellenirken hata:`, error)
-            errorCount++
+            failedProducts.push(product.name)
           }
         }
       }
@@ -520,14 +516,14 @@ export default function MenuPage() {
       
       if (updatedCount === 0) {
         toast.info('Güncellenecek ürün bulunamadı')
-      } else if (errorCount > 0) {
-        toast.warning(`${updatedCount} ürünün fiyatı yerel olarak güncellendi, ancak ${errorCount} ürün sunucuda güncellenemedi. Sayfa yenilendiğinde değişiklikler kaybolabilir.`)
+      } else if (failedProducts.length > 0) {
+        toast.warning(`${updatedCount} ürünün fiyatı güncellendi, ancak şu ürünler güncellenemedi: ${failedProducts.join(', ')}`)
       } else {
         toast.success(`${updatedCount} ürünün fiyatı güncellendi`)
       }
     } catch (error) {
       console.error('Fiyat güncelleme hatası:', error)
-      toast.error('Fiyat güncelleme işlemi başarısız oldu')
+      toast.error(`Fiyat güncelleme işlemi başarısız oldu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`)
     } finally {
       setLoading(false)
     }
