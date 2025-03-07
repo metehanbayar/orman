@@ -308,8 +308,27 @@ export default function MenuPage() {
         body: JSON.stringify(updatedProduct)
       })
 
+      let responseData
+      try {
+        responseData = await response.json()
+      } catch (e) {
+        console.error('API yanıtı JSON olarak ayrıştırılamadı:', e)
+      }
+
       if (!response.ok) {
+<<<<<<< HEAD
+        console.error('API yanıtı başarısız:', responseData || await response.text())
+        // API başarısız olsa bile UI güncellenmiş olacak
+        toast.error('Ürün yerel olarak güncellendi, ancak sunucuda güncellenemedi. Sayfa yenilendiğinde değişiklikler kaybolabilir.')
+      } else {
+        if (responseData?.message?.includes('Vercel')) {
+          toast.success('Ürün yerel olarak güncellendi (Vercel ortamında)')
+        } else {
+          toast.success('Ürün başarıyla güncellendi')
+        }
+=======
         throw new Error('Ürün güncellenirken bir hata oluştu')
+>>>>>>> parent of 910cebd (api)
       }
 
       setProducts(prevProducts => prevProducts.map(p => p.id === updatedProduct.id ? updatedProduct : p))
@@ -319,7 +338,7 @@ export default function MenuPage() {
       toast.success('Ürün başarıyla güncellendi')
     } catch (error) {
       console.error('Ürün güncelleme hatası:', error)
-      toast.error('Ürün güncellenirken bir hata oluştu')
+      toast.error(`Ürün güncellenirken bir hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`)
     }
   }
 
@@ -390,6 +409,11 @@ export default function MenuPage() {
 
     try {
       const updatedProducts = []
+<<<<<<< HEAD
+      const failedProducts = []
+      
+=======
+>>>>>>> parent of 910cebd (api)
       for (const product of products) {
         if (selectedProducts.has(product.id)) {
           const currentPrice = parseFloat(product.price)
@@ -400,6 +424,30 @@ export default function MenuPage() {
             price: newPrice
           }
           
+<<<<<<< HEAD
+          try {
+            const response = await fetch(`/api/products/${product.id}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(updatedProduct)
+            })
+            
+            if (!response.ok) {
+              const errorText = await response.text()
+              console.error(`${product.name} güncellenemedi:`, errorText)
+              failedProducts.push(product.name)
+              updatedProducts.push(product) // Orijinal ürünü koru
+            } else {
+              updatedProducts.push(updatedProduct) // Güncellenmiş ürünü ekle
+            }
+          } catch (error) {
+            console.error(`${product.id} için API hatası:`, error)
+            failedProducts.push(product.name)
+            updatedProducts.push(product) // Orijinal ürünü koru
+          }
+=======
           await fetch(`/api/products/${product.id}`, {
             method: 'PUT',
             headers: {
@@ -409,6 +457,7 @@ export default function MenuPage() {
           })
           
           updatedProducts.push(updatedProduct)
+>>>>>>> parent of 910cebd (api)
         } else {
           updatedProducts.push(product)
         }
@@ -417,10 +466,19 @@ export default function MenuPage() {
       setProducts(updatedProducts)
       setSelectedProducts(new Set())
       setBulkPriceIncrease('')
+<<<<<<< HEAD
+      
+      if (failedProducts.length > 0) {
+        toast.error(`Şu ürünlerin fiyatları güncellenemedi: ${failedProducts.join(', ')}`)
+      } else {
+        toast.success('Fiyatlar başarıyla güncellendi')
+      }
+=======
       toast.success('Fiyatlar başarıyla güncellendi')
+>>>>>>> parent of 910cebd (api)
     } catch (error) {
       console.error('Toplu fiyat güncelleme hatası:', error)
-      toast.error('Fiyatlar güncellenirken bir hata oluştu')
+      toast.error(`Fiyatlar güncellenirken bir hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`)
     }
   }
 
@@ -447,6 +505,14 @@ export default function MenuPage() {
 
       // Her eşleştirilmiş ürün için fiyat güncelleme işlemi yap
       let updatedCount = 0
+<<<<<<< HEAD
+      const failedProducts = []
+
+      for (const product of updatedProducts) {
+        // MSSQL ürün adı tanımlanmışsa eşleştir
+        const mssqlProductName = product.mssqlProductName || product.name
+        const mssqlProduct = mssqlProducts.find((p: {name: string; price: string}) => p.name === mssqlProductName)
+=======
       const updatedProducts = [...products]
 
       for (const product of matchedProducts) {
@@ -456,9 +522,41 @@ export default function MenuPage() {
             (mp: { name: string }) => mp.name === product.mssqlProductName
           )
           console.log(`${product.name} için eşleşen MSSQL ürünleri:`, matchingMssqlProducts.length)
+>>>>>>> parent of 910cebd (api)
 
           if (matchingMssqlProducts.length === 0) continue
 
+<<<<<<< HEAD
+          console.log(`${product.name} fiyatı güncelleniyor: ${product.price} -> ${newPrice}`)
+          
+          const productIndex = updatedProducts.indexOf(product)
+          const updatedProduct = {
+            ...product,
+            price: newPrice
+          }
+          
+          try {
+            const response = await fetch(`/api/products/${product.id}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(updatedProduct)
+            })
+
+            if (!response.ok) {
+              const errorText = await response.text()
+              console.error(`${product.name} güncellenemedi:`, errorText)
+              failedProducts.push(product.name)
+            } else {
+              console.log(`${product.name} güncellendi`)
+              updatedProducts[productIndex] = updatedProduct
+              updatedCount++
+            }
+          } catch (error) {
+            console.error(`${product.name} güncellenirken hata:`, error)
+            failedProducts.push(product.name)
+=======
           // Ürünü güncelle
           const productIndex = updatedProducts.findIndex(p => p.id === product.id)
           if (productIndex === -1) continue
@@ -493,6 +591,7 @@ export default function MenuPage() {
             if (matchingProduct) {
               updatedProduct.price = matchingProduct.price.toString()
             }
+>>>>>>> parent of 910cebd (api)
           }
 
           // Ürünü API'de güncelle
@@ -519,14 +618,22 @@ export default function MenuPage() {
       // 4. State'i güncelle ve sonucu bildir
       setProducts(updatedProducts)
       
+<<<<<<< HEAD
+      if (updatedCount === 0) {
+        toast.success('Güncellenecek ürün bulunamadı')
+      } else if (failedProducts.length > 0) {
+        toast.error(`${updatedCount} ürünün fiyatı güncellendi, ancak şu ürünler güncellenemedi: ${failedProducts.join(', ')}`)
+      } else {
+=======
       if (updatedCount > 0) {
+>>>>>>> parent of 910cebd (api)
         toast.success(`${updatedCount} ürünün fiyatı güncellendi`)
       } else {
         toast.error('Hiçbir ürün güncellenemedi')
       }
     } catch (error) {
       console.error('Fiyat güncelleme hatası:', error)
-      toast.error('Fiyat güncelleme işlemi başarısız oldu')
+      toast.error(`Fiyat güncelleme işlemi başarısız oldu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`)
     } finally {
       setLoading(false)
     }

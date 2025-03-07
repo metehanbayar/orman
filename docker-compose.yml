@@ -24,10 +24,10 @@ services:
       - ADMIN_PASSWORD=Lila*172839
       - JWT_SECRET=lila_orman_secret_key_2024_token_encryption
     volumes:
-      - ./data:/app/data:rw
-      - ./public/dishes:/app/public/dishes:rw
-      - ./public:/app/public:rw
-    user: "1001:1001"  # nextjs kullanıcısı
+      - ./data:/app/data
+      - ./public/dishes:/app/public/dishes
+      - ./public:/app/public
+    user: "node"
     restart: unless-stopped
     # Debug için komut satırı çıktılarını daha detaylı göster
     logging:
