@@ -78,7 +78,9 @@ export async function POST(request: Request) {
   try {
     console.log('POST isteği alındı')
     const product = await request.json()
-    const products = await readProducts()
+    
+    // Vercel ortamında çalışıyoruz mu kontrol et
+    const isVercel = process.env.VERCEL === '1'
     
     // Yeni ürüne benzersiz bir ID ata
     const newProduct = {
@@ -90,6 +92,23 @@ export async function POST(request: Request) {
       }))
     }
     
+    if (isVercel) {
+      // Vercel ortamında dosya yazma işlemi yapamıyoruz
+      // Bu nedenle sadece başarılı yanıt dönüyoruz
+      console.log('Vercel ortamında ürün ekleme isteği:', newProduct)
+      return new NextResponse(JSON.stringify({
+        ...newProduct,
+        message: 'Vercel ortamında ürün ekleme işlemi simüle edildi'
+      }), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, max-age=0',
+        },
+      })
+    }
+    
+    const products = await readProducts()
     products.push(newProduct)
     await writeProducts(products)
     

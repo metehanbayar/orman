@@ -300,6 +300,13 @@ export default function MenuPage() {
         variations: variations.length > 0 ? variations : undefined
       }
 
+      // Önce UI'ı güncelle
+      setProducts(prevProducts => prevProducts.map(p => p.id === updatedProduct.id ? updatedProduct : p))
+      setShowEditModal(false)
+      setEditingProduct(null)
+      setSelectedImage(null)
+      
+      // Sonra API'ye gönder
       const response = await fetch(`/api/products/${updatedProduct.id}`, {
         method: 'PUT',
         headers: {
@@ -309,14 +316,12 @@ export default function MenuPage() {
       })
 
       if (!response.ok) {
-        throw new Error('Ürün güncellenirken bir hata oluştu')
+        console.error('API yanıtı başarısız:', await response.text())
+        // API başarısız olsa bile UI güncellenmiş olacak
+        toast.warning('Ürün yerel olarak güncellendi, ancak sunucuda güncellenemedi. Sayfa yenilendiğinde değişiklikler kaybolabilir.')
+      } else {
+        toast.success('Ürün başarıyla güncellendi')
       }
-
-      setProducts(prevProducts => prevProducts.map(p => p.id === updatedProduct.id ? updatedProduct : p))
-      setShowEditModal(false)
-      setEditingProduct(null)
-      setSelectedImage(null)
-      toast.success('Ürün başarıyla güncellendi')
     } catch (error) {
       console.error('Ürün güncelleme hatası:', error)
       toast.error('Ürün güncellenirken bir hata oluştu')
@@ -390,6 +395,8 @@ export default function MenuPage() {
 
     try {
       const updatedProducts = []
+      let errorCount = 0
+      
       for (const product of products) {
         if (selectedProducts.has(product.id)) {
           const currentPrice = parseFloat(product.price)
@@ -400,24 +407,42 @@ export default function MenuPage() {
             price: newPrice
           }
           
-          await fetch(`/api/products/${product.id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(updatedProduct)
-          })
-          
+          // Önce UI'ı güncelle
           updatedProducts.push(updatedProduct)
+          
+          // Sonra API'ye gönder
+          try {
+            const response = await fetch(`/api/products/${product.id}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(updatedProduct)
+            })
+            
+            if (!response.ok) {
+              console.error(`${product.name} güncellenemedi:`, await response.text())
+              errorCount++
+            }
+          } catch (error) {
+            console.error(`${product.id} için API hatası:`, error)
+            errorCount++
+          }
         } else {
           updatedProducts.push(product)
         }
       }
       
+      // UI'ı güncelle
       setProducts(updatedProducts)
       setSelectedProducts(new Set())
       setBulkPriceIncrease('')
-      toast.success('Fiyatlar başarıyla güncellendi')
+      
+      if (errorCount > 0) {
+        toast.warning(`Ürünler yerel olarak güncellendi, ancak ${errorCount} ürün sunucuda güncellenemedi. Sayfa yenilendiğinde değişiklikler kaybolabilir.`)
+      } else {
+        toast.success('Fiyatlar başarıyla güncellendi')
+      }
     } catch (error) {
       console.error('Toplu fiyat güncelleme hatası:', error)
       toast.error('Fiyatlar güncellenirken bir hata oluştu')
@@ -425,104 +450,80 @@ export default function MenuPage() {
   }
 
   const handleUpdatePrices = async () => {
+    if (loading) return
+    setLoading(true)
+
     try {
-      setLoading(true)
-      
-      // MSSQL'den güncel fiyatları al
-      const mssqlResponse = await fetch('/api/mssql-products')
-      if (!mssqlResponse.ok) {
-        throw new Error('MSSQL ürünleri alınamadı')
+      // 1. MSSQL'den fiyatları al
+      const response = await fetch('/api/mssql-products')
+      if (!response.ok) {
+        throw new Error('MSSQL fiyatları alınamadı')
       }
-      const mssqlProducts = await mssqlResponse.json()
-      console.log('MSSQL ürünleri alındı:', mssqlProducts.length)
+      const mssqlProducts = await response.json()
 
-      // Eşleştirilmiş ürünleri filtrele
-      const matchedProducts = products.filter(p => p.mssqlProductName)
-      console.log('Eşleştirilmiş ürünler:', matchedProducts.length)
-      
-      if (matchedProducts.length === 0) {
-        toast.error('Eşleştirilmiş ürün bulunamadı')
-        return
-      }
-
-      // Her eşleştirilmiş ürün için fiyat güncelleme işlemi yap
-      let updatedCount = 0
+      // 2. Eşleşen ürünleri bul ve güncelle
       const updatedProducts = [...products]
+      let updatedCount = 0
+      let errorCount = 0
 
-      for (const product of matchedProducts) {
-        try {
-          // MSSQL'den eşleşen ürünleri bul
-          const matchingMssqlProducts = mssqlProducts.filter(
-            (mp: { name: string }) => mp.name === product.mssqlProductName
-          )
-          console.log(`${product.name} için eşleşen MSSQL ürünleri:`, matchingMssqlProducts.length)
+      for (const product of updatedProducts) {
+        // MSSQL ürün adı tanımlanmışsa eşleştir
+        const mssqlProductName = product.mssqlProductName || product.name
+        const mssqlProduct = mssqlProducts.find((p: any) => p.name === mssqlProductName)
 
-          if (matchingMssqlProducts.length === 0) continue
+        if (mssqlProduct) {
+          const newPrice = mssqlProduct.price.toString()
+          
+          // Fiyat değişmediyse güncelleme yapma
+          if (product.price === newPrice) {
+            console.log(`${product.name} fiyatı zaten güncel: ${newPrice}`)
+            continue
+          }
 
-          // Ürünü güncelle
-          const productIndex = updatedProducts.findIndex(p => p.id === product.id)
-          if (productIndex === -1) continue
-
-          const updatedProduct = { ...product }
-
-          // Varyasyonları güncelle
-          if (product.variations?.length) {
-            let hasUpdates = false
-            updatedProduct.variations = product.variations.map(variation => {
-              const matchingVariation = matchingMssqlProducts.find(
-                (mp: { portion: string }) => mp.portion === variation.name
-              )
-              
-              if (matchingVariation) {
-                hasUpdates = true
-                return {
-                  ...variation,
-                  price: matchingVariation.price.toString()
-                }
-              }
-              return variation
+          console.log(`${product.name} fiyatı güncelleniyor: ${product.price} -> ${newPrice}`)
+          
+          const productIndex = updatedProducts.indexOf(product)
+          const updatedProduct = {
+            ...product,
+            price: newPrice
+          }
+          
+          // Önce UI'ı güncelle
+          updatedProducts[productIndex] = updatedProduct
+          updatedCount++
+          
+          // Sonra API'ye gönder
+          try {
+            const response = await fetch(`/api/products/${product.id}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(updatedProduct)
             })
 
-            // Ana fiyatı ilk varyasyonun fiyatı yap
-            if (hasUpdates && updatedProduct.variations[0]) {
-              updatedProduct.price = updatedProduct.variations[0].price
+            if (!response.ok) {
+              console.error(`${product.name} güncellenemedi:`, await response.text())
+              errorCount++
+            } else {
+              console.log(`${product.name} güncellendi`)
             }
-          } else {
-            // Varyasyon yoksa direkt fiyatı güncelle
-            const matchingProduct = matchingMssqlProducts[0]
-            if (matchingProduct) {
-              updatedProduct.price = matchingProduct.price.toString()
-            }
+          } catch (error) {
+            console.error(`${product.name} güncellenirken hata:`, error)
+            errorCount++
           }
-
-          // Ürünü API'de güncelle
-          const response = await fetch(`/api/products/${product.id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(updatedProduct)
-          })
-
-          if (response.ok) {
-            updatedProducts[productIndex] = updatedProduct
-            updatedCount++
-            console.log(`${product.name} güncellendi`)
-          } else {
-            console.error(`${product.name} güncellenemedi:`, await response.text())
-          }
-        } catch (error) {
-          console.error(`${product.name} güncellenirken hata:`, error)
         }
       }
 
       // 4. State'i güncelle ve sonucu bildir
       setProducts(updatedProducts)
       
-      if (updatedCount > 0) {
-        toast.success(`${updatedCount} ürünün fiyatı güncellendi`)
+      if (updatedCount === 0) {
+        toast.info('Güncellenecek ürün bulunamadı')
+      } else if (errorCount > 0) {
+        toast.warning(`${updatedCount} ürünün fiyatı yerel olarak güncellendi, ancak ${errorCount} ürün sunucuda güncellenemedi. Sayfa yenilendiğinde değişiklikler kaybolabilir.`)
       } else {
-        toast.error('Hiçbir ürün güncellenemedi')
+        toast.success(`${updatedCount} ürünün fiyatı güncellendi`)
       }
     } catch (error) {
       console.error('Fiyat güncelleme hatası:', error)
