@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { toast } from 'react-hot-toast'
+import { FEATURE_ICONS } from '@/lib/constants'
 
 interface Feature {
   name: string
@@ -29,108 +30,89 @@ interface Product {
   variations?: Variation[]
 }
 
-const FEATURE_ICONS = [
-  { icon: '🌶️', label: 'Acı Seviyesi', values: ['Az Acılı', 'Orta Acılı', 'Çok Acılı'] },
-  { icon: '⚖️', label: 'Porsiyon', values: ['Küçük', 'Normal', 'Büyük'] },
-  { icon: '🥩', label: 'Pişirme', values: ['Az', 'Orta', 'İyi'] },
-  { icon: '🌱', label: 'Diyet', values: ['Vejetaryen', 'Vegan', 'Glutensiz'] },
-  { icon: '🥄', label: 'Servis', values: ['1 Kişilik', '2 Kişilik', '4 Kişilik'] },
-  { icon: '🔥', label: 'Kalori', values: ['300-400', '400-600', '600+'] },
-  { icon: '⭐', label: 'Özellik', values: ['Şefin Önerisi', 'Yeni', 'Popüler'] },
-  { icon: '🥜', label: 'Alerjen', values: ['Gluten', 'Fındık', 'Süt'] },
-  { icon: '⏰', label: 'Hazırlama', values: ['10-15 dk', '15-25 dk', '25+ dk'] },
-  { icon: '💯', label: 'Beğeni', values: ['Trend', 'En Çok Satan', 'Favori'] },
-]
+interface Category {
+  id: string
+  name: string
+  image: string
+  description: string
+}
 
 export default function MenuPage() {
   const router = useRouter()
   const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [showAddModal, setShowAddModal] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
-  const [categories, setCategories] = useState<string[]>([])
-  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set())
-  const [showBulkActions, setShowBulkActions] = useState(false)
-  const [bulkCategory, setBulkCategory] = useState('')
-  const [bulkPriceIncrease, setBulkPriceIncrease] = useState('')
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [variationCount, setVariationCount] = useState(1)
+  const [loading, setLoading] = useState(false)
 
-  // Ürünleri getir
+  // Ürünleri yükle
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        setLoading(true)
-        setError(null)
-        
-        const response = await fetch('/api/products', {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
-        })
-
-        if (!response.ok) {
-          throw new Error('Ürünler yüklenirken bir hata oluştu')
-        }
-        
+        const response = await fetch('/api/products')
+        if (!response.ok) throw new Error('Ürünler yüklenemedi')
         const data = await response.json()
         setProducts(data)
       } catch (error) {
-        console.error('Ürünleri getirme hatası:', error)
-        setError(error instanceof Error ? error.message : 'Bir hata oluştu')
-      } finally {
-        setLoading(false)
+        console.error('Ürün yükleme hatası:', error)
+        toast.error('Ürünler yüklenirken bir hata oluştu')
+      }
+    }
+
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories')
+        if (!response.ok) throw new Error('Kategoriler yüklenemedi')
+        const data = await response.json()
+        setCategories(data)
+      } catch (error) {
+        console.error('Kategori yükleme hatası:', error)
+        toast.error('Kategoriler yüklenirken bir hata oluştu')
       }
     }
 
     fetchProducts()
-  }, [])
-
-  // Kategorileri getir
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch('/api/categories')
-        if (!response.ok) throw new Error('Kategoriler yüklenirken bir hata oluştu')
-        const data = await response.json()
-        setCategories(data.map((cat: { name: string }) => cat.name))
-      } catch (error) {
-        console.error('Kategorileri getirme hatası:', error)
-      }
-    }
     fetchCategories()
   }, [])
 
-  // Benzersiz kategorileri al
-  const uniqueCategories = [...new Set(products.map(product => product.category))]
-
-  // Ürün silme
-  const handleDelete = async (productId: string) => {
-    if (!confirm('Bu ürünü silmek istediğinize emin misiniz?')) return
-    
-    try {
-      const response = await fetch(`/api/products/${productId}`, {
-        method: 'DELETE'
-      })
-      
-      if (!response.ok) {
-        throw new Error('Ürün silinirken bir hata oluştu')
-      }
-      
-      setProducts(products.filter(p => p.id !== productId))
-    } catch (error) {
-      console.error('Ürün silme hatası:', error)
-      alert('Ürün silinirken bir hata oluştu')
+  // Resim seçme
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      setSelectedImage(e.target.files[0])
     }
   }
 
-  // Ürün düzenleme
+  // Ürün silme
+  const handleDelete = async (id: string) => {
+    if (!confirm('Bu ürünü silmek istediğinize emin misiniz?')) return
+
+    try {
+      const response = await fetch(`/api/products/${id}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) throw new Error('Ürün silinemedi')
+
+      setProducts(products.filter(p => p.id !== id))
+      toast.success('Ürün başarıyla silindi')
+    } catch (error) {
+      console.error('Silme hatası:', error)
+      toast.error('Ürün silinirken bir hata oluştu')
+    }
+  }
+
+  // Düzenleme modunu aç
   const handleEdit = (product: Product) => {
     setEditingProduct(product)
-    setShowEditModal(true)
+    setVariationCount(product.variations?.length || 1)
+  }
+
+  // Düzenleme modunu kapat
+  const handleCancelEdit = () => {
+    setEditingProduct(null)
+    setSelectedImage(null)
+    setVariationCount(1)
   }
 
   // Ürün ekleme
@@ -175,15 +157,15 @@ export default function MenuPage() {
         .filter(([key]) => key.startsWith('variation_name_') || key.startsWith('variation_price_'))
         .reduce((acc, [key, value]) => {
           const index = key.split('_').pop()
-          if (index) { // index undefined değilse işlem yap
+          if (index) {
             if (!acc[index]) acc[index] = {}
             if (key.includes('name')) acc[index].name = value.toString()
             if (key.includes('price')) acc[index].price = value.toString()
           }
           return acc
-        }, {} as Record<string, { name?: string, price?: string }>)
+        }, {} as Record<string, { name?: string; price?: string }>)
 
-      // Geçerli varyasyonları ekle
+      // Geçerli çiftleri variations dizisine ekle
       Object.values(variationPairs).forEach(pair => {
         if (pair.name && pair.price) {
           variations.push({
@@ -194,18 +176,16 @@ export default function MenuPage() {
         }
       })
 
-      // Yeni ürünü oluştur
       const newProduct = {
         id,
         name,
         description: formData.get('description')?.toString() || '',
-        price: formData.get('price')?.toString() || '0',
+        price: formData.get('price')?.toString() || '',
         category,
         image: imagePath,
-        categoryImage: `/categories/${category.toLowerCase().replace(/[^a-z0-9]/g, '-')}.jpg`,
         features,
-        mssqlProductName: name,
-        variations
+        variations: variations.length > 0 ? variations : undefined,
+        mssqlProductName: formData.get('mssqlProductName')?.toString() || ''
       } satisfies Product
 
       const response = await fetch('/api/products', {
@@ -213,29 +193,38 @@ export default function MenuPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(newProduct)
+        body: JSON.stringify(newProduct),
       })
 
       if (!response.ok) {
+        const responseData = await response.text()
+        console.error('API yanıtı başarısız:', responseData)
         throw new Error('Ürün eklenirken bir hata oluştu')
       }
 
-      setProducts(prevProducts => [...prevProducts, newProduct])
-      setShowAddModal(false)
-      setSelectedImage(null)
+      const savedProduct = await response.json()
+      setProducts([...products, savedProduct])
       toast.success('Ürün başarıyla eklendi')
+
+      // Formu sıfırla
+      const form = document.querySelector('form')
+      if (form) {
+        form.reset()
+        setSelectedImage(null)
+        setVariationCount(1)
+      }
     } catch (error) {
-      console.error('Ürün ekleme hatası:', error)
+      console.error('Ekleme hatası:', error)
       toast.error('Ürün eklenirken bir hata oluştu')
     }
   }
 
   // Ürün güncelleme
   const handleUpdate = async (formData: FormData) => {
-    if (!editingProduct) return;
+    if (!editingProduct) return
 
     try {
-      let imagePath = editingProduct.image || '/placeholder.jpg'
+      let imagePath = editingProduct.image
       
       // Yeni resim seçildiyse yükle
       if (selectedImage) {
@@ -270,15 +259,15 @@ export default function MenuPage() {
         .filter(([key]) => key.startsWith('variation_name_') || key.startsWith('variation_price_'))
         .reduce((acc, [key, value]) => {
           const index = key.split('_').pop()
-          if (index) { // index undefined değilse işlem yap
+          if (index) {
             if (!acc[index]) acc[index] = {}
             if (key.includes('name')) acc[index].name = value.toString()
             if (key.includes('price')) acc[index].price = value.toString()
           }
           return acc
-        }, {} as Record<string, { name?: string, price?: string }>)
+        }, {} as Record<string, { name?: string; price?: string }>)
 
-      // Geçerli varyasyonları ekle
+      // Geçerli çiftleri variations dizisine ekle
       Object.values(variationPairs).forEach(pair => {
         if (pair.name && pair.price) {
           variations.push({
@@ -289,1002 +278,313 @@ export default function MenuPage() {
         }
       })
 
-      const updatedProduct: Product = {
-        ...editingProduct,
-        name: formData.get('name') as string,
-        description: formData.get('description') as string,
-        price: formData.get('price') as string,
-        category: formData.get('category') as string,
+      const updatedProduct = {
+        name: formData.get('name')?.toString(),
+        description: formData.get('description')?.toString(),
+        price: formData.get('price')?.toString(),
+        category: formData.get('category')?.toString(),
         image: imagePath,
         features,
-        variations: variations.length > 0 ? variations : undefined
+        variations: variations.length > 0 ? variations : undefined,
+        mssqlProductName: formData.get('mssqlProductName')?.toString()
       }
 
-      const response = await fetch(`/api/products/${updatedProduct.id}`, {
+      const response = await fetch(`/api/products/${editingProduct.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updatedProduct)
+        body: JSON.stringify(updatedProduct),
       })
 
-      let responseData
-      try {
-        responseData = await response.json()
-      } catch (e) {
-        console.error('API yanıtı JSON olarak ayrıştırılamadı:', e)
-      }
-
       if (!response.ok) {
-<<<<<<< HEAD
-        console.error('API yanıtı başarısız:', responseData || await response.text())
-        // API başarısız olsa bile UI güncellenmiş olacak
+        console.error('API yanıtı başarısız:', await response.text())
         toast.error('Ürün yerel olarak güncellendi, ancak sunucuda güncellenemedi. Sayfa yenilendiğinde değişiklikler kaybolabilir.')
       } else {
-        if (responseData?.message?.includes('Vercel')) {
-          toast.success('Ürün yerel olarak güncellendi (Vercel ortamında)')
-        } else {
-          toast.success('Ürün başarıyla güncellendi')
-        }
-=======
-        throw new Error('Ürün güncellenirken bir hata oluştu')
->>>>>>> parent of 910cebd (api)
+        toast.success('Ürün başarıyla güncellendi')
       }
 
-      setProducts(prevProducts => prevProducts.map(p => p.id === updatedProduct.id ? updatedProduct : p))
-      setShowEditModal(false)
-      setEditingProduct(null)
-      setSelectedImage(null)
-      toast.success('Ürün başarıyla güncellendi')
+      // UI'ı güncelle
+      const updatedProductData = await response.json()
+      setProducts(prevProducts => prevProducts.map(p => 
+        p.id === editingProduct.id ? updatedProductData : p
+      ))
+
+      // Düzenleme modunu kapat
+      handleCancelEdit()
     } catch (error) {
-      console.error('Ürün güncelleme hatası:', error)
-      toast.error(`Ürün güncellenirken bir hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`)
+      console.error('Güncelleme hatası:', error)
+      toast.error('Ürün güncellenirken bir hata oluştu')
     }
   }
 
-  // Toplu işlemler
-  const handleBulkDelete = async () => {
-    if (!confirm(`Seçili ${selectedProducts.size} ürünü silmek istediğinize emin misiniz?`)) return
+  // Form gönderimi
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setLoading(true)
 
     try {
-      for (const productId of selectedProducts) {
-        await fetch(`/api/products/${productId}`, {
-          method: 'DELETE'
-        })
-      }
+      const formData = new FormData(e.currentTarget)
       
-      setProducts(products.filter(p => !selectedProducts.has(p.id)))
-      setSelectedProducts(new Set())
-      toast.success('Seçili ürünler başarıyla silindi')
-    } catch (error) {
-      console.error('Toplu silme hatası:', error)
-      toast.error('Ürünler silinirken bir hata oluştu')
-    }
-  }
-
-  const handleBulkCategoryUpdate = async () => {
-    if (!bulkCategory) return
-    if (!confirm(`Seçili ${selectedProducts.size} ürünün kategorisini "${bulkCategory}" olarak değiştirmek istediğinize emin misiniz?`)) return
-
-    try {
-      const updatedProducts = []
-      for (const product of products) {
-        if (selectedProducts.has(product.id)) {
-          const updatedProduct = {
-            ...product,
-            category: bulkCategory,
-            categoryImage: `/categories/${bulkCategory.toLowerCase().replace(/[^a-z0-9]/g, '-')}.jpg`
-          }
-          
-          await fetch(`/api/products/${product.id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(updatedProduct)
-          })
-          
-          updatedProducts.push(updatedProduct)
-        } else {
-          updatedProducts.push(product)
-        }
-      }
-      
-      setProducts(updatedProducts)
-      setSelectedProducts(new Set())
-      setBulkCategory('')
-      toast.success('Kategoriler başarıyla güncellendi')
-    } catch (error) {
-      console.error('Toplu kategori güncelleme hatası:', error)
-      toast.error('Kategoriler güncellenirken bir hata oluştu')
-    }
-  }
-
-  const handleBulkPriceUpdate = async () => {
-    if (!bulkPriceIncrease) return
-    const increase = parseFloat(bulkPriceIncrease)
-    if (isNaN(increase)) return
-    
-    if (!confirm(`Seçili ${selectedProducts.size} ürünün fiyatını %${increase} oranında artırmak istediğinize emin misiniz?`)) return
-
-    try {
-      const updatedProducts = []
-<<<<<<< HEAD
-      const failedProducts = []
-      
-=======
->>>>>>> parent of 910cebd (api)
-      for (const product of products) {
-        if (selectedProducts.has(product.id)) {
-          const currentPrice = parseFloat(product.price)
-          const newPrice = (currentPrice * (1 + increase / 100)).toFixed(2)
-          
-          const updatedProduct = {
-            ...product,
-            price: newPrice
-          }
-          
-<<<<<<< HEAD
-          try {
-            const response = await fetch(`/api/products/${product.id}`, {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(updatedProduct)
-            })
-            
-            if (!response.ok) {
-              const errorText = await response.text()
-              console.error(`${product.name} güncellenemedi:`, errorText)
-              failedProducts.push(product.name)
-              updatedProducts.push(product) // Orijinal ürünü koru
-            } else {
-              updatedProducts.push(updatedProduct) // Güncellenmiş ürünü ekle
-            }
-          } catch (error) {
-            console.error(`${product.id} için API hatası:`, error)
-            failedProducts.push(product.name)
-            updatedProducts.push(product) // Orijinal ürünü koru
-          }
-=======
-          await fetch(`/api/products/${product.id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(updatedProduct)
-          })
-          
-          updatedProducts.push(updatedProduct)
->>>>>>> parent of 910cebd (api)
-        } else {
-          updatedProducts.push(product)
-        }
-      }
-      
-      setProducts(updatedProducts)
-      setSelectedProducts(new Set())
-      setBulkPriceIncrease('')
-<<<<<<< HEAD
-      
-      if (failedProducts.length > 0) {
-        toast.error(`Şu ürünlerin fiyatları güncellenemedi: ${failedProducts.join(', ')}`)
+      if (editingProduct) {
+        await handleUpdate(formData)
       } else {
-        toast.success('Fiyatlar başarıyla güncellendi')
-      }
-=======
-      toast.success('Fiyatlar başarıyla güncellendi')
->>>>>>> parent of 910cebd (api)
-    } catch (error) {
-      console.error('Toplu fiyat güncelleme hatası:', error)
-      toast.error(`Fiyatlar güncellenirken bir hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`)
-    }
-  }
-
-  const handleUpdatePrices = async () => {
-    try {
-      setLoading(true)
-      
-      // MSSQL'den güncel fiyatları al
-      const mssqlResponse = await fetch('/api/mssql-products')
-      if (!mssqlResponse.ok) {
-        throw new Error('MSSQL ürünleri alınamadı')
-      }
-      const mssqlProducts = await mssqlResponse.json()
-      console.log('MSSQL ürünleri alındı:', mssqlProducts.length)
-
-      // Eşleştirilmiş ürünleri filtrele
-      const matchedProducts = products.filter(p => p.mssqlProductName)
-      console.log('Eşleştirilmiş ürünler:', matchedProducts.length)
-      
-      if (matchedProducts.length === 0) {
-        toast.error('Eşleştirilmiş ürün bulunamadı')
-        return
-      }
-
-      // Her eşleştirilmiş ürün için fiyat güncelleme işlemi yap
-      let updatedCount = 0
-<<<<<<< HEAD
-      const failedProducts = []
-
-      for (const product of updatedProducts) {
-        // MSSQL ürün adı tanımlanmışsa eşleştir
-        const mssqlProductName = product.mssqlProductName || product.name
-        const mssqlProduct = mssqlProducts.find((p: {name: string; price: string}) => p.name === mssqlProductName)
-=======
-      const updatedProducts = [...products]
-
-      for (const product of matchedProducts) {
-        try {
-          // MSSQL'den eşleşen ürünleri bul
-          const matchingMssqlProducts = mssqlProducts.filter(
-            (mp: { name: string }) => mp.name === product.mssqlProductName
-          )
-          console.log(`${product.name} için eşleşen MSSQL ürünleri:`, matchingMssqlProducts.length)
->>>>>>> parent of 910cebd (api)
-
-          if (matchingMssqlProducts.length === 0) continue
-
-<<<<<<< HEAD
-          console.log(`${product.name} fiyatı güncelleniyor: ${product.price} -> ${newPrice}`)
-          
-          const productIndex = updatedProducts.indexOf(product)
-          const updatedProduct = {
-            ...product,
-            price: newPrice
-          }
-          
-          try {
-            const response = await fetch(`/api/products/${product.id}`, {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(updatedProduct)
-            })
-
-            if (!response.ok) {
-              const errorText = await response.text()
-              console.error(`${product.name} güncellenemedi:`, errorText)
-              failedProducts.push(product.name)
-            } else {
-              console.log(`${product.name} güncellendi`)
-              updatedProducts[productIndex] = updatedProduct
-              updatedCount++
-            }
-          } catch (error) {
-            console.error(`${product.name} güncellenirken hata:`, error)
-            failedProducts.push(product.name)
-=======
-          // Ürünü güncelle
-          const productIndex = updatedProducts.findIndex(p => p.id === product.id)
-          if (productIndex === -1) continue
-
-          const updatedProduct = { ...product }
-
-          // Varyasyonları güncelle
-          if (product.variations?.length) {
-            let hasUpdates = false
-            updatedProduct.variations = product.variations.map(variation => {
-              const matchingVariation = matchingMssqlProducts.find(
-                (mp: { portion: string }) => mp.portion === variation.name
-              )
-              
-              if (matchingVariation) {
-                hasUpdates = true
-                return {
-                  ...variation,
-                  price: matchingVariation.price.toString()
-                }
-              }
-              return variation
-            })
-
-            // Ana fiyatı ilk varyasyonun fiyatı yap
-            if (hasUpdates && updatedProduct.variations[0]) {
-              updatedProduct.price = updatedProduct.variations[0].price
-            }
-          } else {
-            // Varyasyon yoksa direkt fiyatı güncelle
-            const matchingProduct = matchingMssqlProducts[0]
-            if (matchingProduct) {
-              updatedProduct.price = matchingProduct.price.toString()
-            }
->>>>>>> parent of 910cebd (api)
-          }
-
-          // Ürünü API'de güncelle
-          const response = await fetch(`/api/products/${product.id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(updatedProduct)
-          })
-
-          if (response.ok) {
-            updatedProducts[productIndex] = updatedProduct
-            updatedCount++
-            console.log(`${product.name} güncellendi`)
-          } else {
-            console.error(`${product.name} güncellenemedi:`, await response.text())
-          }
-        } catch (error) {
-          console.error(`${product.name} güncellenirken hata:`, error)
-        }
-      }
-
-      // 4. State'i güncelle ve sonucu bildir
-      setProducts(updatedProducts)
-      
-<<<<<<< HEAD
-      if (updatedCount === 0) {
-        toast.success('Güncellenecek ürün bulunamadı')
-      } else if (failedProducts.length > 0) {
-        toast.error(`${updatedCount} ürünün fiyatı güncellendi, ancak şu ürünler güncellenemedi: ${failedProducts.join(', ')}`)
-      } else {
-=======
-      if (updatedCount > 0) {
->>>>>>> parent of 910cebd (api)
-        toast.success(`${updatedCount} ürünün fiyatı güncellendi`)
-      } else {
-        toast.error('Hiçbir ürün güncellenemedi')
+        await handleAdd(formData)
       }
     } catch (error) {
-      console.error('Fiyat güncelleme hatası:', error)
-      toast.error(`Fiyat güncelleme işlemi başarısız oldu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`)
+      console.error('Form gönderim hatası:', error)
+      toast.error('İşlem sırasında bir hata oluştu')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-gray-900">Menü Yönetimi</h1>
-            <div className="flex gap-4">
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="bg-[#ef991e] text-white px-4 py-2 rounded-md hover:bg-[#8c0459] transition-colors"
-              >
-                Yeni Ürün Ekle
-              </button>
-              <button
-                onClick={handleUpdatePrices}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-              >
-                Fiyatları Güncelle
-              </button>
-              <button
-                onClick={() => router.push('/admin/match')}
-                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-              >
-                Ürün Eşleştirme
-              </button>
-              <button
-                onClick={() => router.back()}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50"
-              >
-                Geri
-              </button>
-            </div>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-semibold text-gray-900">
+          {editingProduct ? 'Ürün Düzenle' : 'Yeni Ürün Ekle'}
+        </h1>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
+        {/* Ana bilgiler */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              Ürün Adı
+            </label>
+            <input
+              type="text"
+              name="name"
+              id="name"
+              required
+              defaultValue={editingProduct?.name}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+              Kategori
+            </label>
+            <select
+              name="category"
+              id="category"
+              required
+              defaultValue={editingProduct?.category}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            >
+              <option value="">Kategori Seçin</option>
+              {categories.map(category => (
+                <option key={category.id} value={category.name}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="price" className="block text-sm font-medium text-gray-700">
+              Fiyat
+            </label>
+            <input
+              type="text"
+              name="price"
+              id="price"
+              required
+              defaultValue={editingProduct?.price}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="mssqlProductName" className="block text-sm font-medium text-gray-700">
+              MSSQL Ürün Adı
+            </label>
+            <input
+              type="text"
+              name="mssqlProductName"
+              id="mssqlProductName"
+              defaultValue={editingProduct?.mssqlProductName}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+              Açıklama
+            </label>
+            <textarea
+              name="description"
+              id="description"
+              rows={3}
+              defaultValue={editingProduct?.description}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            />
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-gray-900"></div>
-            <p className="mt-4 text-gray-500">Ürünler yükleniyor...</p>
+        {/* Resim yükleme */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Ürün Resmi</label>
+          <div className="mt-1 flex items-center space-x-4">
+            {(editingProduct?.image || selectedImage) && (
+              <div className="relative h-32 w-32">
+                <Image
+                  src={selectedImage ? URL.createObjectURL(selectedImage) : editingProduct?.image || ''}
+                  alt="Ürün resmi"
+                  fill
+                  className="object-cover rounded-lg"
+                />
+              </div>
+            )}
+            <input
+              type="file"
+              onChange={handleImageSelect}
+              accept="image/*"
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+            />
           </div>
-        ) : error ? (
-          <div className="text-center py-12">
-            <p className="text-red-500">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 px-4 py-2 bg-gray-900 text-white rounded-full hover:bg-gray-800 transition-colors"
-            >
-              Tekrar Dene
-            </button>
-          </div>
-        ) : (
-          <>
-            {uniqueCategories.map((category) => (
-              <div key={category} className="mb-16">
-                <div className="flex items-center space-x-4 mb-8">
-                  <div className="relative w-16 h-16 rounded-full overflow-hidden">
-                    <Image
-                      src={products.find(p => p.category === category)?.categoryImage || '/placeholder.jpg'}
-                      alt={category}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <h2 className="text-2xl font-semibold text-gray-900">
-                    {category}
-                  </h2>
-                </div>
-                
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {products
-                    .filter(product => product.category === category)
-                    .map((product) => (
-                      <div key={product.id} className="relative">
-                        <div className="absolute top-4 left-4 z-10">
-                          <input
-                            type="checkbox"
-                            checked={selectedProducts.has(product.id)}
-                            onChange={(e) => {
-                              const newSelected = new Set(selectedProducts)
-                              if (e.target.checked) {
-                                newSelected.add(product.id)
-                              } else {
-                                newSelected.delete(product.id)
-                              }
-                              setSelectedProducts(newSelected)
-                            }}
-                            className="w-5 h-5 rounded border-gray-300 text-[#ef991e] focus:ring-pink-500"
-                          />
-                        </div>
-                        <div className="group bg-white rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden">
-                          <div className="relative h-48 w-full">
-                            <Image
-                              src={product.image}
-                              alt={product.name}
-                              fill
-                              className="object-cover transform group-hover:scale-105 transition-transform duration-300"
-                            />
-                            <div className="absolute top-4 right-4">
-                              <span className="bg-white/90 backdrop-blur-sm text-gray-900 px-3 py-1 rounded-full font-semibold shadow-lg">
-                                {product.price} ₺
-                              </span>
-                            </div>
-                          </div>
-                          <div className="p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                              {product.name}
-                            </h3>
-                            <p className="text-gray-600 mb-4 line-clamp-2">
-                              {product.description}
-                            </p>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
-                              {product.features?.map((feature, index) => (
-                                <div
-                                  key={feature.name || index}
-                                  className="bg-gray-50 rounded-lg p-2 text-center"
-                                >
-                                  <span className="text-2xl mb-1 block" role="img" aria-label={feature.name}>
-                                    {feature.name}
-                                  </span>
-                                  <span className="text-sm font-medium text-gray-900">
-                                    {feature.value}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                            <div className="flex justify-end space-x-2">
-                              <button
-                                onClick={() => handleEdit(product)}
-                                className="px-3 py-1 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-                              >
-                                Düzenle
-                              </button>
-                              <button
-                                onClick={() => handleDelete(product.id)}
-                                className="px-3 py-1 text-sm font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200"
-                              >
-                                Sil
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+        </div>
+
+        {/* Özellikler */}
+        <div>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Özellikler</h3>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {FEATURE_ICONS.map(feature => (
+              <div key={feature.label}>
+                <label htmlFor={`feature_${feature.label}`} className="block text-sm font-medium text-gray-700">
+                  {feature.label}
+                </label>
+                <div className="mt-1 flex rounded-md shadow-sm">
+                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
+                    {feature.icon}
+                  </span>
+                  <input
+                    type="text"
+                    name={`feature_${feature.label}`}
+                    id={`feature_${feature.label}`}
+                    defaultValue={editingProduct?.features.find(f => f.name === feature.icon)?.value}
+                    className="block w-full flex-1 rounded-none rounded-r-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
                 </div>
               </div>
             ))}
-
-            {products.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-500">
-                  Henüz ürün eklenmemiş
-                </p>
-              </div>
-            )}
-          </>
-        )}
-      </main>
-
-      {/* Ürün Ekleme Modalı */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-lg w-full p-6">
-            <h2 className="text-xl font-semibold mb-4">Yeni Ürün Ekle</h2>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                handleAdd(new FormData(e.currentTarget))
-              }}
-              className="space-y-4"
-            >
-              <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1">
-                  Ürün Adı
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1">
-                  Açıklama
-                </label>
-                <textarea
-                  name="description"
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1">
-                  Fiyat (₺)
-                </label>
-                <input
-                  type="number"
-                  name="price"
-                  required
-                  step="0.01"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1">
-                  Kategori
-                </label>
-                <select
-                  name="category"
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                >
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1">
-                  Ürün Görseli
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setSelectedImage(e.target.files?.[0] || null)}
-                  className="w-full text-gray-900"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1">
-                  Özellikler
-                </label>
-                <div className="grid grid-cols-2 gap-4">
-                  {FEATURE_ICONS.map((feature) => (
-                    <div key={feature.label} className="space-y-2">
-                      <label className={`flex items-center gap-2 text-sm font-medium ${feature.label === 'Beğeni' ? 'text-[#ef991e]' : 'text-gray-800'}`}>
-                        <span>{feature.icon}</span>
-                        <span>{feature.label}</span>
-                        {feature.label === 'Beğeni' && (
-                          <span className="text-xs bg-pink-100 text-[#ef991e] px-2 py-0.5 rounded-full">
-                            Çok satanlar için &quot;En Çok Satan&quot; seçin
-                          </span>
-                        )}
-                      </label>
-                      <select
-                        name={`feature_${feature.label}`}
-                        className={`w-full px-3 py-2 border rounded-md text-sm text-gray-900 ${
-                          feature.label === 'Beğeni' 
-                            ? 'border-pink-200 bg-pink-50/50 focus:border-[#ef991e] focus:ring-pink-200' 
-                            : 'border-gray-300'
-                        }`}
-                      >
-                        <option value="">Seçiniz</option>
-                        {feature.values.map((value) => (
-                          <option 
-                            key={value} 
-                            value={value}
-                            className={value === 'En Çok Satan' ? 'font-medium text-[#ef991e]' : ''}
-                          >
-                            {value}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-800 mb-1">
-                  Porsiyon Seçenekleri
-                </label>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="text"
-                      name="variation_name_1"
-                      placeholder="Porsiyon Adı"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900"
-                    />
-                    <input
-                      type="number"
-                      name="variation_price_1"
-                      placeholder="Fiyat"
-                      step="0.01"
-                      className="w-32 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900"
-                    />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="text"
-                      name="variation_name_2"
-                      placeholder="Porsiyon Adı"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900"
-                    />
-                    <input
-                      type="number"
-                      name="variation_price_2"
-                      placeholder="Fiyat"
-                      step="0.01"
-                      className="w-32 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900"
-                    />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="text"
-                      name="variation_name_3"
-                      placeholder="Porsiyon Adı"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900"
-                    />
-                    <input
-                      type="number"
-                      name="variation_price_3"
-                      placeholder="Fiyat"
-                      step="0.01"
-                      className="w-32 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-end space-x-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowAddModal(false)
-                    setSelectedImage(null)
-                  }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-                >
-                  İptal
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-[#ef991e] rounded-md hover:bg-pink-700"
-                >
-                  Ekle
-                </button>
-              </div>
-            </form>
           </div>
         </div>
-      )}
 
-      {/* Ürün Düzenleme Modalı */}
-      {showEditModal && editingProduct && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-lg max-w-lg w-full p-6 my-8">
-            <div className="max-h-[calc(100vh-8rem)] overflow-y-auto pr-2">
-              <h2 className="text-xl font-semibold mb-4 sticky top-0 bg-white py-2 z-10">Ürün Düzenle</h2>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleUpdate(new FormData(e.currentTarget));
-                }}
-                className="space-y-4"
-              >
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-800 mb-1">
-                      Ürün Adı
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      defaultValue={editingProduct.name}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-800 mb-1">
-                      Açıklama
-                    </label>
-                    <textarea
-                      name="description"
-                      defaultValue={editingProduct.description}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-800 mb-1">
-                      Fiyat (₺)
-                    </label>
-                    <input
-                      type="number"
-                      name="price"
-                      defaultValue={editingProduct.price}
-                      required
-                      step="0.01"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-800 mb-1">
-                      Kategori
-                    </label>
-                    <select
-                      name="category"
-                      defaultValue={editingProduct.category}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900"
-                    >
-                      {categories.map((category) => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-800 mb-1">
-                      Mevcut Görsel
-                    </label>
-                    <div className="relative w-32 h-32 rounded-lg overflow-hidden">
+        {/* Porsiyon seçenekleri */}
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium text-gray-900">Porsiyon Seçenekleri</h3>
+            <button
+              type="button"
+              onClick={() => setVariationCount(prev => prev + 1)}
+              className="px-3 py-1 text-sm bg-indigo-50 text-indigo-700 rounded-full hover:bg-indigo-100"
+            >
+              + Seçenek Ekle
+            </button>
+          </div>
+          
+          <div className="space-y-4">
+            {Array.from({ length: variationCount }).map((_, index) => (
+              <div key={index} className="flex gap-4">
+                <div className="flex-1">
+                  <label htmlFor={`variation_name_${index}`} className="block text-sm font-medium text-gray-700">
+                    Porsiyon Adı
+                  </label>
+                  <input
+                    type="text"
+                    name={`variation_name_${index}`}
+                    id={`variation_name_${index}`}
+                    defaultValue={editingProduct?.variations?.[index]?.name}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label htmlFor={`variation_price_${index}`} className="block text-sm font-medium text-gray-700">
+                    Fiyat
+                  </label>
+                  <input
+                    type="text"
+                    name={`variation_price_${index}`}
+                    id={`variation_price_${index}`}
+                    defaultValue={editingProduct?.variations?.[index]?.price}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Form butonları */}
+        <div className="flex justify-end space-x-3">
+          {editingProduct && (
+            <button
+              type="button"
+              onClick={handleCancelEdit}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              İptal
+            </button>
+          )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            {loading ? 'İşleniyor...' : editingProduct ? 'Güncelle' : 'Ekle'}
+          </button>
+        </div>
+      </form>
+
+      {/* Ürün listesi */}
+      <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="px-4 py-5 sm:px-6">
+          <h2 className="text-lg font-medium text-gray-900">Ürün Listesi</h2>
+        </div>
+        <div className="border-t border-gray-200">
+          <ul role="list" className="divide-y divide-gray-200">
+            {products.map(product => (
+              <li key={product.id} className="px-4 py-4 sm:px-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="relative h-16 w-16 mr-4">
                       <Image
-                        src={editingProduct.image}
-                        alt={editingProduct.name}
+                        src={product.image || '/placeholder.jpg'}
+                        alt={product.name}
                         fill
-                        className="object-cover"
+                        className="object-cover rounded-lg"
                       />
                     </div>
-                    <label className="block text-sm font-medium text-gray-800 mt-4 mb-1">
-                      Yeni Görsel Yükle
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setSelectedImage(e.target.files?.[0] || null)}
-                      className="w-full text-gray-900"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-800 mb-1">
-                      Özellikler
-                    </label>
-                    <div className="grid grid-cols-2 gap-4">
-                      {FEATURE_ICONS.map((feature) => (
-                        <div key={feature.label} className="space-y-2">
-                          <label className={`flex items-center gap-2 text-sm font-medium ${feature.label === 'Beğeni' ? 'text-[#ef991e]' : 'text-gray-800'}`}>
-                            <span>{feature.icon}</span>
-                            <span>{feature.label}</span>
-                            {feature.label === 'Beğeni' && (
-                              <span className="text-xs bg-pink-100 text-[#ef991e] px-2 py-0.5 rounded-full">
-                                Çok satanlar için &quot;En Çok Satan&quot; seçin
-                              </span>
-                            )}
-                          </label>
-                          <select
-                            name={`feature_${feature.label}`}
-                            className={`w-full px-3 py-2 border rounded-md text-sm text-gray-900 ${
-                              feature.label === 'Beğeni' 
-                                ? 'border-pink-200 bg-pink-50/50 focus:border-[#ef991e] focus:ring-pink-200' 
-                                : 'border-gray-300'
-                            }`}
-                          >
-                            <option value="">Seçiniz</option>
-                            {feature.values.map((value) => (
-                              <option 
-                                key={value} 
-                                value={value}
-                                className={value === 'En Çok Satan' ? 'font-medium text-[#ef991e]' : ''}
-                              >
-                                {value}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      ))}
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-900">{product.name}</h3>
+                      <p className="text-sm text-gray-500">{product.category}</p>
+                      <p className="text-sm font-medium text-gray-900">{product.price} TL</p>
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-800 mb-1">
-                      Porsiyon Seçenekleri
-                    </label>
-                    <div className="space-y-3">
-                      {editingProduct?.variations?.map((variation, index) => (
-                        <div key={variation.id} className="flex items-center gap-3">
-                          <input
-                            type="text"
-                            name={`variation_name_${index + 1}`}
-                            placeholder="Porsiyon Adı"
-                            defaultValue={variation.name}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900"
-                          />
-                          <input
-                            type="number"
-                            name={`variation_price_${index + 1}`}
-                            placeholder="Fiyat"
-                            defaultValue={variation.price}
-                            step="0.01"
-                            className="w-32 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900"
-                          />
-                        </div>
-                      ))}
-                      {/* Yeni varyasyon ekleme butonu */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newVariation = {
-                            id: Math.random().toString(36).substr(2, 9),
-                            name: '',
-                            price: ''
-                          }
-                          setEditingProduct(prev => ({
-                            ...prev!,
-                            variations: [...(prev?.variations || []), newVariation]
-                          }))
-                        }}
-                        className="mt-2 w-full px-3 py-2 text-sm font-medium text-[#ef991e] bg-pink-50 rounded-md hover:bg-pink-100 transition-colors flex items-center justify-center gap-2"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
-                        Yeni Porsiyon Ekle
-                      </button>
-                    </div>
-                  </div>
-                  {/* MSSQL Ürün Adı */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-800 mb-2">
-                      MSSQL Ürün Adı
-                    </label>
-                    <input
-                      type="text"
-                      name="mssqlProductName"
-                      defaultValue={editingProduct?.mssqlProductName || ''}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ef991e] text-gray-900"
-                      placeholder="MSSQL veritabanındaki ürün adı"
-                    />
-                    <p className="mt-1 text-sm text-gray-600">
-                      Bu alan, MSSQL veritabanındaki ürün adıyla eşleştirme için kullanılacaktır.
-                    </p>
-                  </div>
-                </div>
-                <div className="sticky bottom-0 bg-white pt-4 mt-4 border-t">
-                  <div className="flex justify-end space-x-2">
+                  <div className="flex space-x-2">
                     <button
-                      type="button"
-                      onClick={() => {
-                        setShowEditModal(false);
-                        setEditingProduct(null);
-                        setSelectedImage(null);
-                      }}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                      onClick={() => handleEdit(product)}
+                      className="px-3 py-1 text-sm text-indigo-600 hover:text-indigo-900"
                     >
-                      İptal
+                      Düzenle
                     </button>
                     <button
-                      type="submit"
-                      className="px-4 py-2 text-sm font-medium text-white bg-[#ef991e] rounded-md hover:bg-pink-700"
+                      onClick={() => handleDelete(product.id)}
+                      className="px-3 py-1 text-sm text-red-600 hover:text-red-900"
                     >
-                      Kaydet
+                      Sil
                     </button>
                   </div>
                 </div>
-              </form>
-            </div>
-          </div>
+              </li>
+            ))}
+          </ul>
         </div>
-      )}
-
-      {/* Toplu İşlem Araç Çubuğu */}
-      {selectedProducts.size > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <span className="text-sm font-medium text-gray-700">
-                  {selectedProducts.size} ürün seçildi
-                </span>
-                <button
-                  onClick={() => setSelectedProducts(new Set())}
-                  className="text-sm text-gray-500 hover:text-gray-700"
-                >
-                  Seçimi Temizle
-                </button>
-              </div>
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => setShowBulkActions(!showBulkActions)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-                >
-                  {showBulkActions ? 'İşlemleri Gizle' : 'İşlemleri Göster'}
-                </button>
-                <button
-                  onClick={handleBulkDelete}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
-                >
-                  Seçilenleri Sil
-                </button>
-              </div>
-            </div>
-            
-            {showBulkActions && (
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <div className="flex items-center gap-2">
-                  <select
-                    value={bulkCategory}
-                    onChange={(e) => setBulkCategory(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900"
-                  >
-                    <option value="">Kategori Seçin</option>
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={handleBulkCategoryUpdate}
-                    disabled={!bulkCategory}
-                    className="px-4 py-2 text-sm font-medium text-white bg-[#ef991e] rounded-md hover:bg-pink-700 disabled:opacity-50"
-                  >
-                    Kategori Güncelle
-                  </button>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 flex items-center gap-2">
-                    <input
-                      type="number"
-                      value={bulkPriceIncrease}
-                      onChange={(e) => setBulkPriceIncrease(e.target.value)}
-                      placeholder="Artış Oranı (%)"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900"
-                    />
-                    <span className="text-sm text-gray-500">%</span>
-                  </div>
-                  <button
-                    onClick={handleBulkPriceUpdate}
-                    disabled={!bulkPriceIncrease}
-                    className="px-4 py-2 text-sm font-medium text-white bg-[#ef991e] rounded-md hover:bg-pink-700 disabled:opacity-50"
-                  >
-                    Fiyat Güncelle
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   )
 } 
