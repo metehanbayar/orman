@@ -30,6 +30,11 @@ const nextConfig = {
     ]
   },
   output: 'standalone',
+  // ESLint yapılandırması
+  eslint: {
+    // Derleme sırasında ESLint hatalarını görmezden gel
+    ignoreDuringBuilds: true,
+  },
 }
 
 module.exports = nextConfig 

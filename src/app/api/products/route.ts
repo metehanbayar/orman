@@ -74,7 +74,7 @@ async function writeProducts(products: Product[]) {
     // Geçici dosyayı asıl dosyaya taşı (atomik işlem)
     try {
       await fs.rename(tempFile, PRODUCTS_FILE)
-    } catch (_error) {
+    } catch {
       // rename başarısız olursa, kopyala ve sil yöntemini dene
       await fs.copyFile(tempFile, PRODUCTS_FILE)
       await fs.unlink(tempFile).catch((e: unknown) => console.error('Geçici dosya silme hatası:', e))
