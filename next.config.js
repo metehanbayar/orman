@@ -1,17 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  output: 'standalone',
   images: {
     domains: ['placehold.co', 'qrmenu.lila.company'],
-    unoptimized: true,
-    remotePatterns: [
-      {
-        protocol: 'http',
-        hostname: 'qrmenu.lila.company',
-        port: '3000',
-        pathname: '/**',
-      }
-    ]
+    unoptimized: true
   },
   env: {
     MSSQL_USER: process.env.MSSQL_USER,
@@ -19,35 +12,33 @@ const nextConfig = {
     MSSQL_SERVER: process.env.MSSQL_SERVER,
     MSSQL_DATABASE: process.env.MSSQL_DATABASE,
   },
-  experimental: {
-    serverActions: {
-      allowedOrigins: ['*']
-    }
-  },
-  // PWA config
-  headers: async () => {
+  // Statik dosyaların servis edilmesi için
+  async rewrites() {
     return [
       {
-        source: '/api/:path*',
+        source: '/dishes/:path*',
+        destination: '/public/dishes/:path*'
+      },
+      {
+        source: '/categories/:path*',
+        destination: '/public/categories/:path*'
+      }
+    ]
+  },
+  // CORS ve güvenlik başlıkları
+  async headers() {
+    return [
+      {
+        source: '/:path*',
         headers: [
           { key: 'Access-Control-Allow-Credentials', value: 'true' },
           { key: 'Access-Control-Allow-Origin', value: '*' },
           { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,PATCH,POST,PUT' },
           { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version' },
         ],
-      },
-      {
-        source: '/service-worker.js',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=0, must-revalidate',
-          },
-        ],
-      },
+      }
     ]
-  },
-  output: 'standalone',
+  }
 }
 
 module.exports = nextConfig 
