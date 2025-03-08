@@ -14,9 +14,8 @@ services:
       - MSSQL_SERVER=${MSSQL_SERVER}
       - MSSQL_DATABASE=${MSSQL_DATABASE}
     volumes:
-      - app_data:/app/data
-      - app_dishes:/app/public/dishes
-      - app_categories:/app/public/categories
+      - ./public:/app/public
+      - ./data:/app/data
     restart: unless-stopped
     # Debug için komut satırı çıktılarını daha detaylı göster
     logging:

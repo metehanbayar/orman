@@ -3,7 +3,15 @@ const nextConfig = {
   reactStrictMode: true,
   images: {
     domains: ['placehold.co'],
-    unoptimized: true // Linux sunucuda optimizasyon sorunlarını önlemek için
+    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
+        pathname: '/**',
+      }
+    ]
   },
   env: {
     MSSQL_USER: process.env.MSSQL_USER,

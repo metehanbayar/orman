@@ -35,11 +35,14 @@ export async function POST(
     const buffer = Buffer.from(bytes)
 
     // Upload klasörünü oluştur
-    const uploadDir = path.join(process.cwd(), 'public', type)
+    const publicDir = path.join(process.cwd(), 'public')
+    const uploadDir = path.join(publicDir, type)
+    
     try {
+      await mkdir(publicDir, { recursive: true })
       await mkdir(uploadDir, { recursive: true })
     } catch (error) {
-      console.error(`${type} klasörü oluşturma hatası:`, error)
+      console.error(`Dizin oluşturma hatası:`, error)
     }
 
     // Benzersiz dosya adı oluştur
@@ -53,9 +56,13 @@ export async function POST(
       await writeFile(filePath, buffer)
       console.log(`Dosya başarıyla yüklendi: ${filePath}`)
 
+      // URL'i oluştur
+      const fileUrl = `/${type}/${filename}`
+      console.log('Dosya URL:', fileUrl)
+
       return Response.json({ 
         success: true,
-        path: `/${type}/${filename}`
+        path: fileUrl
       })
     } catch (error) {
       console.error('Dosya yazma hatası:', error)
