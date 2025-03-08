@@ -2,12 +2,12 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['placehold.co'],
+    domains: ['placehold.co', 'qrmenu.lila.company'],
     unoptimized: true,
     remotePatterns: [
       {
         protocol: 'http',
-        hostname: 'localhost',
+        hostname: 'qrmenu.lila.company',
         port: '3000',
         pathname: '/**',
       }

@@ -14,8 +14,7 @@ services:
       - MSSQL_SERVER=${MSSQL_SERVER}
       - MSSQL_DATABASE=${MSSQL_DATABASE}
     volumes:
-      - ./public:/app/public
-      - ./data:/app/data
+      - uploads:/app/public
     restart: unless-stopped
     # Debug için komut satırı çıktılarını daha detaylı göster
     logging:
@@ -25,6 +24,7 @@ services:
         max-file: "3"
 
 volumes:
+  uploads:
   app_data:
   app_dishes:
   app_categories: 
