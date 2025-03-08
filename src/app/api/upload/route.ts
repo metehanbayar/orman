@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
+import { writeFile, mkdir, stat } from 'fs/promises'
 import path from 'path'
 
 // Route segment config
@@ -35,25 +35,59 @@ export async function POST(
     const buffer = Buffer.from(bytes)
 
     // Upload dizinini oluştur
-    const uploadDir = path.join(process.cwd(), 'public', type)
+    const publicDir = path.join(process.cwd(), 'public')
+    const uploadDir = path.join(publicDir, type)
     
     try {
-      await mkdir(uploadDir, { recursive: true })
-      console.log('Upload dizini oluşturuldu:', uploadDir)
-    } catch (error) {
-      console.error('Dizin oluşturma hatası:', error)
-    }
+      // Public ve upload dizinlerinin varlığını kontrol et
+      try {
+        await stat(publicDir)
+      } catch {
+        await mkdir(publicDir, { recursive: true })
+        console.log('Public dizini oluşturuldu:', publicDir)
+      }
 
-    // Benzersiz dosya adı oluştur
-    const timestamp = Date.now()
-    const extension = path.extname(file.name)
-    const filename = `${path.basename(file.name, extension)}_${timestamp}${extension}`
-    const filePath = path.join(uploadDir, filename)
+      try {
+        await stat(uploadDir)
+      } catch {
+        await mkdir(uploadDir, { recursive: true })
+        console.log('Upload dizini oluşturuldu:', uploadDir)
+      }
 
-    try {
+      // Dizin izinlerini kontrol et ve ayarla
+      try {
+        await writeFile(path.join(uploadDir, '.test'), 'test')
+        await writeFile(path.join(publicDir, '.test'), 'test')
+        console.log('Dizin yazma izinleri kontrol edildi')
+      } catch (error) {
+        console.error('Dizin yazma izni hatası:', error)
+        return Response.json(
+          { error: 'Dizin yazma izni hatası' },
+          { status: 500 }
+        )
+      }
+
+      // Benzersiz dosya adı oluştur
+      const timestamp = Date.now()
+      const extension = path.extname(file.name)
+      const filename = `${path.basename(file.name, extension)}_${timestamp}${extension}`
+      const filePath = path.join(uploadDir, filename)
+
       // Dosyayı kaydet
       await writeFile(filePath, buffer)
       console.log('Dosya kaydedildi:', filePath)
+
+      // Dosyanın varlığını kontrol et
+      try {
+        await stat(filePath)
+        console.log('Dosya başarıyla oluşturuldu ve erişilebilir')
+      } catch (error) {
+        console.error('Dosya erişim hatası:', error)
+        return Response.json(
+          { error: 'Dosya oluşturuldu ama erişilemiyor' },
+          { status: 500 }
+        )
+      }
 
       // URL'i oluştur
       const fileUrl = `/${type}/${filename}`
@@ -61,19 +95,20 @@ export async function POST(
 
       return Response.json({ 
         success: true,
-        path: fileUrl
+        path: fileUrl,
+        fullPath: filePath
       })
     } catch (error) {
-      console.error('Dosya yazma hatası:', error)
+      console.error('İşlem hatası:', error)
       return Response.json(
-        { error: 'Dosya kaydedilirken bir hata oluştu' },
+        { error: 'Dosya işleme hatası' },
         { status: 500 }
       )
     }
   } catch (error) {
-    console.error('Dosya yükleme hatası:', error)
+    console.error('Genel hata:', error)
     return Response.json(
-      { error: 'Dosya yüklenirken bir hata oluştu' },
+      { error: 'Beklenmeyen bir hata oluştu' },
       { status: 500 }
     )
   }
