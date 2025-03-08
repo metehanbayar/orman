@@ -45,12 +45,19 @@ export default function MenuPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [variationCount, setVariationCount] = useState(1)
   const [loading, setLoading] = useState(false)
+  const [imageVersion, setImageVersion] = useState(0)
 
   // Ürünleri yükle
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('/api/products')
+        const response = await fetch('/api/products', {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        })
         if (!response.ok) throw new Error('Ürünler yüklenemedi')
         const data = await response.json()
         setProducts(data)
@@ -128,7 +135,12 @@ export default function MenuPage() {
         
         const uploadResponse = await fetch('/api/upload', {
           method: 'POST',
-          body: imageFormData
+          body: imageFormData,
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
         })
 
         if (!uploadResponse.ok) {
@@ -140,7 +152,7 @@ export default function MenuPage() {
           throw new Error('Resim yüklenirken bir hata oluştu')
         }
 
-        imagePath = uploadResult.path
+        imagePath = `${uploadResult.path}?v=${Date.now()}`
       }
 
       const category = formData.get('category')?.toString() || ''
@@ -212,6 +224,7 @@ export default function MenuPage() {
 
       const savedProduct = await response.json()
       setProducts([...products, savedProduct])
+      setImageVersion(prev => prev + 1)
       toast.success('Ürün başarıyla eklendi')
 
       // Formu sıfırla
@@ -569,13 +582,12 @@ export default function MenuPage() {
                   <div className="flex items-center">
                     <div className="relative h-16 w-16 mr-4">
                       <Image
-                        src={product.image || '/placeholder.jpg'}
+                        src={`${product.image}?v=${imageVersion}`}
                         alt={product.name}
                         fill
                         className="object-cover rounded-lg"
                         unoptimized
                         priority
-                        key={product.image}
                       />
                     </div>
                     <div>

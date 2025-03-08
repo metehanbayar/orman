@@ -60,11 +60,9 @@ const nextConfig = {
     ]
   },
   // Statik dosya servisini etkinleştir
-  serverRuntimeConfig: {
-    staticFolder: '/public',
-  },
-  publicRuntimeConfig: {
-    staticFolder: '/public',
+  distDir: '.next',
+  generateBuildId: async () => {
+    return `build-${Date.now()}`
   }
 }
 

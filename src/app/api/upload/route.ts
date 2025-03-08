@@ -73,16 +73,13 @@ export async function POST(
         const fileUrl = `/${type}/${filename}`
         console.log('Dosya URL:', fileUrl)
 
-        // Dosya yüklendikten sonra kısa bir bekleme
-        await new Promise(resolve => setTimeout(resolve, 1000))
-
-        return Response.json({ 
+        return new Response(JSON.stringify({ 
           success: true,
           path: fileUrl,
-          fullPath: filePath,
           timestamp: timestamp
-        }, {
+        }), {
           headers: {
+            'Content-Type': 'application/json',
             'Cache-Control': 'no-cache, no-store, must-revalidate',
             'Pragma': 'no-cache',
             'Expires': '0'
