@@ -35,11 +35,8 @@ export async function POST(
     const buffer = Buffer.from(bytes)
 
     // Upload klasörünü oluştur
-    const publicDir = path.join(process.cwd(), 'public')
-    const uploadDir = path.join(publicDir, type)
-    
+    const uploadDir = path.join('public', type)
     try {
-      await mkdir(publicDir, { recursive: true })
       await mkdir(uploadDir, { recursive: true })
     } catch (error) {
       console.error(`Dizin oluşturma hatası:`, error)

@@ -31,7 +31,7 @@ RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nextjs -u 1001
 
 # Gerekli dizinleri oluştur
-RUN mkdir -p /app/public/dishes /app/public/categories /app/data
+RUN mkdir -p public/dishes public/categories data
 
 # Uygulama dosyalarını kopyala
 COPY --from=builder /app/public ./public
@@ -41,7 +41,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # İzinleri ayarla
 RUN chown -R nextjs:nodejs /app && \
     chmod -R 755 /app && \
-    chmod -R 777 /app/public/dishes /app/public/categories /app/data
+    chmod -R 777 public/dishes public/categories data
 
 USER nextjs
 
