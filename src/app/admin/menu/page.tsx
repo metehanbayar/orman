@@ -573,6 +573,9 @@ export default function MenuPage() {
                         alt={product.name}
                         fill
                         className="object-cover rounded-lg"
+                        unoptimized
+                        priority
+                        key={product.image}
                       />
                     </div>
                     <div>

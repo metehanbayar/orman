@@ -53,21 +53,18 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            value: 'no-cache, no-store, must-revalidate',
           }
         ],
       }
     ]
   },
   // Statik dosya servisini etkinleştir
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.fallback = {
-        fs: false,
-        path: false,
-      }
-    }
-    return config
+  serverRuntimeConfig: {
+    staticFolder: '/public',
+  },
+  publicRuntimeConfig: {
+    staticFolder: '/public',
   }
 }
 

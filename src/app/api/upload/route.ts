@@ -54,19 +54,6 @@ export async function POST(
         console.log('Upload dizini oluşturuldu:', uploadDir)
       }
 
-      // Dizin izinlerini kontrol et ve ayarla
-      try {
-        await writeFile(path.join(uploadDir, '.test'), 'test')
-        await writeFile(path.join(publicDir, '.test'), 'test')
-        console.log('Dizin yazma izinleri kontrol edildi')
-      } catch (error) {
-        console.error('Dizin yazma izni hatası:', error)
-        return Response.json(
-          { error: 'Dizin yazma izni hatası' },
-          { status: 500 }
-        )
-      }
-
       // Benzersiz dosya adı oluştur
       const timestamp = Date.now()
       const extension = path.extname(file.name)
@@ -81,6 +68,26 @@ export async function POST(
       try {
         await stat(filePath)
         console.log('Dosya başarıyla oluşturuldu ve erişilebilir')
+
+        // URL'i oluştur
+        const fileUrl = `/${type}/${filename}`
+        console.log('Dosya URL:', fileUrl)
+
+        // Dosya yüklendikten sonra kısa bir bekleme
+        await new Promise(resolve => setTimeout(resolve, 1000))
+
+        return Response.json({ 
+          success: true,
+          path: fileUrl,
+          fullPath: filePath,
+          timestamp: timestamp
+        }, {
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        })
       } catch (error) {
         console.error('Dosya erişim hatası:', error)
         return Response.json(
@@ -88,16 +95,6 @@ export async function POST(
           { status: 500 }
         )
       }
-
-      // URL'i oluştur
-      const fileUrl = `/${type}/${filename}`
-      console.log('Dosya URL:', fileUrl)
-
-      return Response.json({ 
-        success: true,
-        path: fileUrl,
-        fullPath: filePath
-      })
     } catch (error) {
       console.error('İşlem hatası:', error)
       return Response.json(
