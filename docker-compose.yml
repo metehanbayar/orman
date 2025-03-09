@@ -14,8 +14,8 @@ services:
       - MSSQL_SERVER=${MSSQL_SERVER}
       - MSSQL_DATABASE=${MSSQL_DATABASE}
     volumes:
-      - static_files:/app/public
-      - data_files:/app/data
+      - ./public:/app/public
+      - ./data:/app/data
     restart: unless-stopped
     # Debug için komut satırı çıktılarını daha detaylı göster
     logging:
@@ -26,9 +26,7 @@ services:
 
 volumes:
   static_files:
-    driver: local
   data_files:
-    driver: local
   uploads:
   app_data:
   app_dishes:

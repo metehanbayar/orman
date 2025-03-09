@@ -64,6 +64,23 @@ const nextConfig = {
   distDir: '.next',
   generateBuildId: async () => {
     return `build-${Date.now()}`
+  },
+  // Statik dosya servisini yapılandır
+  experimental: {
+    outputFileTracingRoot: process.cwd(),
+    outputFileTracingExcludes: {
+      '*': [
+        'node_modules/**',
+        '.git/**',
+      ],
+    },
+  },
+  webpack: (config, { dev, isServer }) => {
+    config.watchOptions = {
+      poll: 1000,
+      aggregateTimeout: 300,
+    }
+    return config
   }
 }
 

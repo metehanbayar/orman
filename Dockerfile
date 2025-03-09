@@ -30,16 +30,20 @@ ENV NEXT_TELEMETRY_DISABLED 1
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001 -G nodejs
 
-# Gerekli dizinleri oluştur
+# Gerekli dizinleri oluştur ve izinleri ayarla
 RUN mkdir -p /app/public/dishes /app/public/categories /app/data && \
     chown -R nextjs:nodejs /app && \
     chmod -R 755 /app && \
-    chmod -R 777 /app/public/dishes /app/public/categories /app/data
+    chmod -R 777 /app/public && \
+    chmod -R 777 /app/data
 
 # Uygulama dosyalarını kopyala
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# İzinleri son kez kontrol et
+RUN chmod -R 777 /app/public /app/data
 
 USER nextjs
 
