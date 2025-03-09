@@ -14,7 +14,7 @@ export async function POST(
   try {
     const formData = await request.formData()
     const file = formData.get('file') as File
-    const type = formData.get('type') as string || 'dishes' // varsayılan olarak dishes
+    const type = formData.get('type') as string || 'dishes'
     
     if (!file) {
       return Response.json(
@@ -43,14 +43,14 @@ export async function POST(
       try {
         await stat(publicDir)
       } catch {
-        await mkdir(publicDir, { recursive: true })
+        await mkdir(publicDir, { recursive: true, mode: 0o777 })
         console.log('Public dizini oluşturuldu:', publicDir)
       }
 
       try {
         await stat(uploadDir)
       } catch {
-        await mkdir(uploadDir, { recursive: true })
+        await mkdir(uploadDir, { recursive: true, mode: 0o777 })
         console.log('Upload dizini oluşturuldu:', uploadDir)
       }
 
@@ -63,6 +63,15 @@ export async function POST(
       // Dosyayı kaydet
       await writeFile(filePath, buffer)
       console.log('Dosya kaydedildi:', filePath)
+
+      // Dosya izinlerini ayarla
+      try {
+        const fs = require('fs')
+        fs.chmodSync(filePath, 0o666)
+        console.log('Dosya izinleri ayarlandı:', filePath)
+      } catch (error) {
+        console.error('Dosya izinleri ayarlanamadı:', error)
+      }
 
       // Dosyanın varlığını kontrol et
       try {
@@ -80,7 +89,7 @@ export async function POST(
         }), {
           headers: {
             'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
             'Pragma': 'no-cache',
             'Expires': '0'
           }
