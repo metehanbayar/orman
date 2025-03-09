@@ -138,7 +138,7 @@ export default function MenuPage() {
           body: imageFormData,
           cache: 'no-store',
           headers: {
-            'Cache-Control': 'no-cache',
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
             'Pragma': 'no-cache'
           }
         })
@@ -152,7 +152,7 @@ export default function MenuPage() {
           throw new Error('Resim yüklenirken bir hata oluştu')
         }
 
-        imagePath = `${uploadResult.path}?v=${Date.now()}`
+        imagePath = uploadResult.path
       }
 
       const category = formData.get('category')?.toString() || ''
@@ -582,12 +582,13 @@ export default function MenuPage() {
                   <div className="flex items-center">
                     <div className="relative h-16 w-16 mr-4">
                       <Image
-                        src={`${product.image}?v=${imageVersion}`}
+                        src={`${product.image}?t=${Date.now()}`}
                         alt={product.name}
                         fill
                         className="object-cover rounded-lg"
                         unoptimized
                         priority
+                        key={`${product.id}-${imageVersion}`}
                       />
                     </div>
                     <div>
