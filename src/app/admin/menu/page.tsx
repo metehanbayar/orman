@@ -46,39 +46,42 @@ export default function MenuPage() {
   const [variationCount, setVariationCount] = useState(1)
   const [loading, setLoading] = useState(false)
   const [imageVersion, setImageVersion] = useState(0)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   // Ürünleri yükle
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('/api/products', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      })
+      if (!response.ok) throw new Error('Ürünler yüklenemedi')
+      const data = await response.json()
+      setProducts(data)
+      setRefreshKey(prev => prev + 1)
+    } catch (error) {
+      console.error('Ürün yükleme hatası:', error)
+      toast.error('Ürünler yüklenirken bir hata oluştu')
+    }
+  }
+
+  // Kategorileri yükle
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/categories')
+      if (!response.ok) throw new Error('Kategoriler yüklenemedi')
+      const data = await response.json()
+      setCategories(data)
+    } catch (error) {
+      console.error('Kategori yükleme hatası:', error)
+      toast.error('Kategoriler yüklenirken bir hata oluştu')
+    }
+  }
+
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch('/api/products', {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
-        })
-        if (!response.ok) throw new Error('Ürünler yüklenemedi')
-        const data = await response.json()
-        setProducts(data)
-      } catch (error) {
-        console.error('Ürün yükleme hatası:', error)
-        toast.error('Ürünler yüklenirken bir hata oluştu')
-      }
-    }
-
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch('/api/categories')
-        if (!response.ok) throw new Error('Kategoriler yüklenemedi')
-        const data = await response.json()
-        setCategories(data)
-      } catch (error) {
-        console.error('Kategori yükleme hatası:', error)
-        toast.error('Kategoriler yüklenirken bir hata oluştu')
-      }
-    }
-
     fetchProducts()
     fetchCategories()
   }, [])
@@ -152,7 +155,7 @@ export default function MenuPage() {
           throw new Error('Resim yüklenirken bir hata oluştu')
         }
 
-        imagePath = uploadResult.path
+        imagePath = `${uploadResult.path}?v=${Date.now()}`
       }
 
       const category = formData.get('category')?.toString() || ''
@@ -225,7 +228,11 @@ export default function MenuPage() {
       const savedProduct = await response.json()
       setProducts([...products, savedProduct])
       setImageVersion(prev => prev + 1)
+      setRefreshKey(prev => prev + 1)
       toast.success('Ürün başarıyla eklendi')
+
+      // Ürünleri yeniden yükle
+      await fetchProducts()
 
       // Formu sıfırla
       const form = document.querySelector('form')
@@ -338,6 +345,11 @@ export default function MenuPage() {
       setProducts(prevProducts => prevProducts.map(p => 
         p.id === editingProduct.id ? updatedProductData : p
       ))
+      setImageVersion(prev => prev + 1)
+      setRefreshKey(prev => prev + 1)
+
+      // Ürünleri yeniden yükle
+      await fetchProducts()
 
       // Düzenleme modunu kapat
       handleCancelEdit()
@@ -582,13 +594,13 @@ export default function MenuPage() {
                   <div className="flex items-center">
                     <div className="relative h-16 w-16 mr-4">
                       <Image
-                        src={`${product.image}?t=${Date.now()}`}
+                        src={`${product.image}?v=${Date.now()}&r=${refreshKey}`}
                         alt={product.name}
                         fill
                         className="object-cover rounded-lg"
                         unoptimized
                         priority
-                        key={`${product.id}-${imageVersion}`}
+                        key={`${product.id}-${imageVersion}-${refreshKey}`}
                       />
                     </div>
                     <div>
