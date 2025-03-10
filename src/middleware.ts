@@ -2,14 +2,22 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  const response = NextResponse.next()
-
-  // Cache kontrolü için header'ları ayarla
-  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
-  response.headers.set('Pragma', 'no-cache')
-  response.headers.set('Expires', '0')
+  // Statik dosya yollarını kontrol et
+  const { pathname } = request.nextUrl
   
-  return response
+  // Eğer bu bir statik dosya ise (dishes veya categories içindeyse)
+  if (pathname.startsWith('/dishes/') || pathname.startsWith('/categories/')) {
+    const response = NextResponse.next()
+    
+    // Önbellek kontrolünü devre dışı bırak
+    response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate')
+    response.headers.delete('Pragma')
+    response.headers.delete('Expires')
+    
+    return response
+  }
+  
+  return NextResponse.next()
 }
 
 export const config = {

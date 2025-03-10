@@ -25,11 +25,11 @@ const nextConfig = {
     return [
       {
         source: '/dishes/:path*',
-        destination: 'http://localhost:3000/public/dishes/:path*'
+        destination: '/public/dishes/:path*'
       },
       {
         source: '/categories/:path*',
-        destination: 'http://localhost:3000/public/categories/:path*'
+        destination: '/public/categories/:path*'
       }
     ]
   },
@@ -41,15 +41,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
-          },
-          {
-            key: 'Pragma',
-            value: 'no-cache'
-          },
-          {
-            key: 'Expires',
-            value: '0'
+            value: 'public, max-age=0, must-revalidate'
           }
         ],
       },
@@ -58,7 +50,25 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0'
+            value: 'public, max-age=0, must-revalidate'
+          }
+        ],
+      },
+      {
+        source: '/dishes/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate'
+          }
+        ],
+      },
+      {
+        source: '/categories/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate'
           }
         ],
       }
@@ -72,12 +82,6 @@ const nextConfig = {
   // Statik dosya servisini yapılandır
   experimental: {
     outputFileTracingRoot: process.cwd(),
-    outputFileTracingExcludes: {
-      '*': [
-        'node_modules/**',
-        '.git/**',
-      ],
-    },
   },
   // Webpack yapılandırması
   webpack: (config) => {
