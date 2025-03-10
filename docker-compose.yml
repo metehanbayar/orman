@@ -14,8 +14,8 @@ services:
       - MSSQL_SERVER=${MSSQL_SERVER}
       - MSSQL_DATABASE=${MSSQL_DATABASE}
     volumes:
-      - ./public:/app/public:rw
-      - ./data:/app/data:rw
+      - ./public:/app/public
+      - ./data:/app/data
       - node_modules:/app/node_modules
       - ./public/dishes:/app/public/dishes:rw
       - ./public/categories:/app/public/categories:rw

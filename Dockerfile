@@ -27,13 +27,14 @@ ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
 # Sistem kullanıcısı ve grubu oluştur
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nextjs -u 1001 -G nodejs
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs && \
+    addgroup nextjs www-data
 
-# Gerekli dizinleri oluştur ve izinleri ayarla
+# Gerekli dizinleri oluştur
 RUN mkdir -p /app/public/dishes /app/public/categories /app/data && \
     chown -R nextjs:nodejs /app && \
-    chmod -R 755 /app && \
+    chmod -R 775 /app && \
     chmod -R 777 /app/public && \
     chmod -R 777 /app/data
 
@@ -45,8 +46,12 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
 # İzinleri son kez kontrol et
-RUN chmod -R 777 /app/public /app/data && \
-    chown -R nextjs:nodejs /app/node_modules
+RUN chown -R nextjs:nodejs /app && \
+    chmod -R 775 /app && \
+    chmod -R 777 /app/public && \
+    chmod -R 777 /app/data && \
+    chmod -R 777 /app/public/dishes && \
+    chmod -R 777 /app/public/categories
 
 USER nextjs
 

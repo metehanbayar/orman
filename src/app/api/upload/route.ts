@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { writeFile, mkdir, stat } from 'fs/promises'
+import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import fs from 'fs'
 
@@ -42,12 +42,12 @@ export async function POST(
     try {
       // Public ve upload dizinlerinin varlığını kontrol et ve oluştur
       if (!fs.existsSync(publicDir)) {
-        fs.mkdirSync(publicDir, { recursive: true, mode: 0o777 })
+        await mkdir(publicDir, { recursive: true, mode: 0o777 })
         console.log('Public dizini oluşturuldu:', publicDir)
       }
 
       if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true, mode: 0o777 })
+        await mkdir(uploadDir, { recursive: true, mode: 0o777 })
         console.log('Upload dizini oluşturuldu:', uploadDir)
       }
 
@@ -60,55 +60,32 @@ export async function POST(
       const filename = `${sanitizedName}-${timestamp}${extension}`
       const filePath = path.join(uploadDir, filename)
 
-      // Dosyayı senkron olarak kaydet
-      fs.writeFileSync(filePath, buffer)
+      // Dosyayı kaydet
+      await writeFile(filePath, buffer)
       console.log('Dosya kaydedildi:', filePath)
 
-      // Dosya izinlerini ayarla
-      fs.chmodSync(filePath, 0o666)
-      fs.chmodSync(uploadDir, 0o777)
-      console.log('Dosya ve dizin izinleri ayarlandı')
+      // URL'i oluştur
+      const fileUrl = `/${type}/${filename}`
+      console.log('Dosya URL:', fileUrl)
 
-      // Dosyanın varlığını kontrol et
-      if (fs.existsSync(filePath)) {
-        console.log('Dosya başarıyla oluşturuldu ve erişilebilir')
+      // Dosya boyutunu al
+      const stats = fs.statSync(filePath)
+      const fileSize = stats.size
 
-        // URL'i oluştur
-        const fileUrl = `/${type}/${filename}`
-        console.log('Dosya URL:', fileUrl)
-
-        // Dosya boyutunu ve MIME tipini al
-        const stats = fs.statSync(filePath)
-        const fileSize = stats.size
-
-        // Dosya izinlerini kontrol et
-        try {
-          await fs.promises.access(filePath, fs.constants.R_OK | fs.constants.W_OK)
-          console.log('Dosya okuma/yazma izinleri doğru')
-        } catch (error) {
-          console.error('Dosya izin hatası:', error)
-          throw new Error('Dosya izinleri hatalı')
+      return new Response(JSON.stringify({ 
+        success: true,
+        path: fileUrl,
+        timestamp: timestamp,
+        size: fileSize,
+        filename: filename
+      }), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         }
-
-        return new Response(JSON.stringify({ 
-          success: true,
-          path: fileUrl,
-          timestamp: timestamp,
-          size: fileSize,
-          filename: filename,
-          fullPath: filePath,
-          permissions: '0666'
-        }), {
-          headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
-        })
-      } else {
-        throw new Error('Dosya kaydedildi ama erişilemiyor')
-      }
+      })
     } catch (error) {
       console.error('İşlem hatası:', error)
       return Response.json(
