@@ -34,10 +34,12 @@ const nextConfig = {
       {
         source: '/dishes/:path*',
         destination: '/public/dishes/:path*',
+        basePath: false
       },
       {
         source: '/categories/:path*',
         destination: '/public/categories/:path*',
+        basePath: false
       }
     ]
   },
@@ -96,6 +98,22 @@ const nextConfig = {
   },
   publicRuntimeConfig: {
     staticFolder: '/public'
+  },
+  // Statik dosya servisini yapılandır
+  async redirects() {
+    return [
+      {
+        source: '/public/:path*',
+        destination: '/:path*',
+        permanent: true,
+      },
+    ]
+  },
+  // Middleware yapılandırması
+  middleware: {
+    // Statik dosyalar için middleware'i devre dışı bırak
+    skipMiddlewareUrlNormalize: true,
+    skipTrailingSlashRedirect: true,
   }
 }
 

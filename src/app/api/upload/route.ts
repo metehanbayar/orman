@@ -64,24 +64,38 @@ export async function POST(
       await writeFile(filePath, buffer)
       console.log('Dosya kaydedildi:', filePath)
 
+      // Dosya izinlerini ayarla
+      await fs.promises.chmod(filePath, 0o666)
+      await fs.promises.chmod(uploadDir, 0o777)
+
+      // Dosyanın varlığını ve erişilebilirliğini kontrol et
+      await fs.promises.access(filePath, fs.constants.R_OK | fs.constants.W_OK)
+
       // URL'i oluştur
       const fileUrl = `/${type}/${filename}`
       console.log('Dosya URL:', fileUrl)
 
       // Dosya boyutunu al
-      const stats = fs.statSync(filePath)
+      const stats = await fs.promises.stat(filePath)
       const fileSize = stats.size
+
+      // Next.js'in statik dosya önbelleğini temizle
+      const cacheDir = path.join(process.cwd(), '.next/cache')
+      if (fs.existsSync(cacheDir)) {
+        await fs.promises.rm(cacheDir, { recursive: true, force: true })
+      }
 
       return new Response(JSON.stringify({ 
         success: true,
         path: fileUrl,
         timestamp: timestamp,
         size: fileSize,
-        filename: filename
+        filename: filename,
+        fullPath: filePath
       }), {
         headers: {
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
           'Pragma': 'no-cache',
           'Expires': '0'
         }
