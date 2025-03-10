@@ -17,6 +17,7 @@ services:
       - ./public:/app/public:rw
       - ./data:/app/data:rw
       - node_modules:/app/node_modules
+      - ./.next:/app/.next:rw
     restart: unless-stopped
     # Debug için komut satırı çıktılarını daha detaylı göster
     logging:
@@ -25,6 +26,13 @@ services:
         max-size: "10m"
         max-file: "3"
     user: "root"
+    command: >
+      sh -c "
+        chmod -R 777 /app/public &&
+        chmod -R 777 /app/data &&
+        chmod -R 777 /app/.next &&
+        node server.js
+      "
 
 volumes:
   node_modules: 
