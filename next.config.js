@@ -25,12 +25,12 @@ const nextConfig = {
     return [
       {
         source: '/dishes/:path*',
-        destination: 'http://localhost:3000/public/dishes/:path*'
+        destination: '/public/dishes/:path*',
       },
       {
         source: '/categories/:path*',
-        destination: 'http://localhost:3000/public/categories/:path*'
-      }
+        destination: '/public/categories/:path*',
+      },
     ]
   },
   // CORS ve güvenlik başlıkları

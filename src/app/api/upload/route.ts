@@ -42,12 +42,12 @@ export async function POST(
     try {
       // Public ve upload dizinlerinin varlığını kontrol et ve oluştur
       if (!fs.existsSync(publicDir)) {
-        await mkdir(publicDir, { recursive: true })
+        await mkdir(publicDir, { recursive: true, mode: 0o777 })
         console.log('Public dizini oluşturuldu:', publicDir)
       }
 
       if (!fs.existsSync(uploadDir)) {
-        await mkdir(uploadDir, { recursive: true })
+        await mkdir(uploadDir, { recursive: true, mode: 0o777 })
         console.log('Upload dizini oluşturuldu:', uploadDir)
       }
 
@@ -62,10 +62,14 @@ export async function POST(
 
       // Dosyayı kaydet
       await writeFile(filePath, buffer)
+      await fs.promises.chmod(filePath, 0o666)
       console.log('Dosya kaydedildi:', filePath)
 
+      // Dosyanın erişilebilir olduğunu kontrol et
+      await fs.promises.access(filePath, fs.constants.R_OK)
+
       // URL'i oluştur
-      const fileUrl = `/${type}/${filename}`
+      const fileUrl = `/public/${type}/${filename}`
       console.log('Dosya URL:', fileUrl)
 
       // Dosya boyutunu al
@@ -77,7 +81,8 @@ export async function POST(
         path: fileUrl,
         timestamp: timestamp,
         size: fileSize,
-        filename: filename
+        filename: filename,
+        fullPath: filePath
       }), {
         headers: {
           'Content-Type': 'application/json',
