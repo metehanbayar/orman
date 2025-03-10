@@ -147,15 +147,17 @@ export default function MenuPage() {
         })
 
         if (!uploadResponse.ok) {
-          throw new Error('Resim yüklenirken bir hata oluştu')
+          const errorData = await uploadResponse.json()
+          throw new Error(errorData.error || 'Resim yüklenirken bir hata oluştu')
         }
 
         const uploadResult = await uploadResponse.json()
         if (!uploadResult.success) {
-          throw new Error('Resim yüklenirken bir hata oluştu')
+          throw new Error(uploadResult.error || 'Resim yüklenirken bir hata oluştu')
         }
 
-        imagePath = `${uploadResult.path}?v=${Date.now()}`
+        imagePath = `${uploadResult.path}?v=${uploadResult.timestamp}`
+        console.log('Yüklenen resim:', imagePath)
       }
 
       const category = formData.get('category')?.toString() || ''
@@ -226,13 +228,14 @@ export default function MenuPage() {
       }
 
       const savedProduct = await response.json()
-      setProducts([...products, savedProduct])
+      setProducts(prevProducts => [...prevProducts, savedProduct])
       setImageVersion(prev => prev + 1)
       setRefreshKey(prev => prev + 1)
       toast.success('Ürün başarıyla eklendi')
 
-      // Ürünleri yeniden yükle
+      // Ürünleri yeniden yükle ve sayfayı yenile
       await fetchProducts()
+      router.refresh()
 
       // Formu sıfırla
       const form = document.querySelector('form')
@@ -243,7 +246,7 @@ export default function MenuPage() {
       }
     } catch (error) {
       console.error('Ekleme hatası:', error)
-      toast.error('Ürün eklenirken bir hata oluştu')
+      toast.error(error instanceof Error ? error.message : 'Ürün eklenirken bir hata oluştu')
     }
   }
 
@@ -600,7 +603,12 @@ export default function MenuPage() {
                         className="object-cover rounded-lg"
                         unoptimized
                         priority
-                        key={`${product.id}-${imageVersion}-${refreshKey}`}
+                        key={`${product.id}-${imageVersion}-${refreshKey}-${Date.now()}`}
+                        onError={(e) => {
+                          const img = e.target as HTMLImageElement
+                          console.error('Resim yükleme hatası:', img.src)
+                          img.src = '/placeholder.jpg'
+                        }}
                       />
                     </div>
                     <div>

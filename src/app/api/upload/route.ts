@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { writeFile, mkdir, stat } from 'fs/promises'
 import path from 'path'
+import fs from 'fs'
 
 // Route segment config
 export const dynamic = 'force-dynamic'
@@ -39,53 +40,53 @@ export async function POST(
     const uploadDir = path.join(publicDir, type)
     
     try {
-      // Public ve upload dizinlerinin varlığını kontrol et
-      try {
-        await stat(publicDir)
-      } catch {
-        await mkdir(publicDir, { recursive: true, mode: 0o777 })
+      // Public ve upload dizinlerinin varlığını kontrol et ve oluştur
+      if (!fs.existsSync(publicDir)) {
+        fs.mkdirSync(publicDir, { recursive: true, mode: 0o777 })
         console.log('Public dizini oluşturuldu:', publicDir)
       }
 
-      try {
-        await stat(uploadDir)
-      } catch {
-        await mkdir(uploadDir, { recursive: true, mode: 0o777 })
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true, mode: 0o777 })
         console.log('Upload dizini oluşturuldu:', uploadDir)
       }
 
       // Benzersiz dosya adı oluştur
       const timestamp = Date.now()
-      const extension = path.extname(file.name)
-      const filename = `${path.basename(file.name, extension)}_${timestamp}${extension}`
+      const extension = path.extname(file.name).toLowerCase()
+      const sanitizedName = path.basename(file.name, extension)
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '-')
+      const filename = `${sanitizedName}-${timestamp}${extension}`
       const filePath = path.join(uploadDir, filename)
 
-      // Dosyayı kaydet
-      await writeFile(filePath, buffer)
+      // Dosyayı senkron olarak kaydet
+      fs.writeFileSync(filePath, buffer)
       console.log('Dosya kaydedildi:', filePath)
 
       // Dosya izinlerini ayarla
-      try {
-        const fs = require('fs')
-        fs.chmodSync(filePath, 0o666)
-        console.log('Dosya izinleri ayarlandı:', filePath)
-      } catch (error) {
-        console.error('Dosya izinleri ayarlanamadı:', error)
-      }
+      fs.chmodSync(filePath, 0o666)
+      console.log('Dosya izinleri ayarlandı:', filePath)
 
       // Dosyanın varlığını kontrol et
-      try {
-        await stat(filePath)
+      if (fs.existsSync(filePath)) {
         console.log('Dosya başarıyla oluşturuldu ve erişilebilir')
 
         // URL'i oluştur
         const fileUrl = `/${type}/${filename}`
         console.log('Dosya URL:', fileUrl)
 
+        // Dosya boyutunu ve MIME tipini al
+        const stats = fs.statSync(filePath)
+        const fileSize = stats.size
+
         return new Response(JSON.stringify({ 
           success: true,
           path: fileUrl,
-          timestamp: timestamp
+          timestamp: timestamp,
+          size: fileSize,
+          filename: filename,
+          fullPath: filePath
         }), {
           headers: {
             'Content-Type': 'application/json',
@@ -94,24 +95,20 @@ export async function POST(
             'Expires': '0'
           }
         })
-      } catch (error) {
-        console.error('Dosya erişim hatası:', error)
-        return Response.json(
-          { error: 'Dosya oluşturuldu ama erişilemiyor' },
-          { status: 500 }
-        )
+      } else {
+        throw new Error('Dosya kaydedildi ama erişilemiyor')
       }
     } catch (error) {
       console.error('İşlem hatası:', error)
       return Response.json(
-        { error: 'Dosya işleme hatası' },
+        { error: 'Dosya işleme hatası: ' + (error as Error).message },
         { status: 500 }
       )
     }
   } catch (error) {
     console.error('Genel hata:', error)
     return Response.json(
-      { error: 'Beklenmeyen bir hata oluştu' },
+      { error: 'Beklenmeyen bir hata oluştu: ' + (error as Error).message },
       { status: 500 }
     )
   }
