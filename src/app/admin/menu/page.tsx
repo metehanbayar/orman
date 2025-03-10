@@ -47,6 +47,7 @@ export default function MenuPage() {
   const [loading, setLoading] = useState(false)
   const [imageVersion, setImageVersion] = useState(0)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [uploadedImages, setUploadedImages] = useState<Set<string>>(new Set())
 
   // Ürünleri yükle
   const fetchProducts = async () => {
@@ -54,7 +55,7 @@ export default function MenuPage() {
       const response = await fetch('/api/products', {
         cache: 'no-store',
         headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate',
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
           'Pragma': 'no-cache'
         }
       })
@@ -125,6 +126,64 @@ export default function MenuPage() {
     setVariationCount(1)
   }
 
+  // Resim önbelleğini temizle
+  const clearImageCache = async (imageUrl: string) => {
+    try {
+      const response = await fetch(imageUrl, {
+        cache: 'reload',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      })
+      if (response.ok) {
+        console.log('Resim önbelleği temizlendi:', imageUrl)
+      }
+    } catch (error) {
+      console.error('Resim önbelleği temizleme hatası:', error)
+    }
+  }
+
+  // Resim yükleme işlemi
+  const uploadImage = async (file: File, type: string): Promise<string> => {
+    const imageFormData = new FormData()
+    imageFormData.append('file', file)
+    imageFormData.append('type', type)
+    
+    const uploadResponse = await fetch('/api/upload', {
+      method: 'POST',
+      body: imageFormData,
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache'
+      }
+    })
+
+    if (!uploadResponse.ok) {
+      const errorData = await uploadResponse.json()
+      throw new Error(errorData.error || 'Resim yüklenirken bir hata oluştu')
+    }
+
+    const uploadResult = await uploadResponse.json()
+    if (!uploadResult.success) {
+      throw new Error(uploadResult.error || 'Resim yüklenirken bir hata oluştu')
+    }
+
+    // Resim yüklendikten sonra kısa bir bekleme
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    const imagePath = `${uploadResult.path}?v=${uploadResult.timestamp}`
+    
+    // Resmin erişilebilir olduğunu kontrol et
+    await clearImageCache(imagePath)
+    
+    // Yüklenen resmi listeye ekle
+    setUploadedImages(prev => new Set(prev).add(imagePath))
+    
+    return imagePath
+  }
+
   // Ürün ekleme
   const handleAdd = async (formData: FormData) => {
     try {
@@ -132,53 +191,8 @@ export default function MenuPage() {
       
       // Önce resmi yükle
       if (selectedImage) {
-        const imageFormData = new FormData()
-        imageFormData.append('file', selectedImage)
-        imageFormData.append('type', 'dishes')
-        
-        const uploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          body: imageFormData,
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-            'Pragma': 'no-cache'
-          }
-        })
-
-        if (!uploadResponse.ok) {
-          const errorData = await uploadResponse.json()
-          throw new Error(errorData.error || 'Resim yüklenirken bir hata oluştu')
-        }
-
-        const uploadResult = await uploadResponse.json()
-        if (!uploadResult.success) {
-          throw new Error(uploadResult.error || 'Resim yüklenirken bir hata oluştu')
-        }
-
-        // Resim yüklendikten sonra kısa bir bekleme
-        await new Promise(resolve => setTimeout(resolve, 1000))
-
-        imagePath = `${uploadResult.path}?v=${uploadResult.timestamp}`
+        imagePath = await uploadImage(selectedImage, 'dishes')
         console.log('Yüklenen resim:', imagePath)
-
-        // Resmin erişilebilir olduğunu kontrol et
-        try {
-          const checkResponse = await fetch(imagePath, { 
-            cache: 'no-store',
-            headers: {
-              'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-              'Pragma': 'no-cache'
-            }
-          })
-          if (!checkResponse.ok) {
-            throw new Error('Resim dosyası erişilebilir değil')
-          }
-          console.log('Resim dosyası erişilebilir')
-        } catch (error) {
-          console.error('Resim erişim hatası:', error)
-          throw new Error('Yüklenen resim erişilebilir değil')
-        }
       }
 
       const category = formData.get('category')?.toString() || ''
@@ -287,25 +301,7 @@ export default function MenuPage() {
       
       // Yeni resim seçildiyse yükle
       if (selectedImage) {
-        const imageFormData = new FormData()
-        imageFormData.append('file', selectedImage)
-        imageFormData.append('type', 'dishes')
-        
-        const uploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          body: imageFormData
-        })
-
-        if (!uploadResponse.ok) {
-          throw new Error('Resim yüklenirken bir hata oluştu')
-        }
-
-        const uploadResult = await uploadResponse.json()
-        if (!uploadResult.success) {
-          throw new Error('Resim yüklenirken bir hata oluştu')
-        }
-
-        imagePath = uploadResult.path
+        imagePath = await uploadImage(selectedImage, 'dishes')
       }
 
       // Özellikleri topla
@@ -625,7 +621,7 @@ export default function MenuPage() {
                   <div className="flex items-center">
                     <div className="relative h-16 w-16 mr-4">
                       <Image
-                        src={`${product.image}?v=${Date.now()}&r=${refreshKey}`}
+                        src={uploadedImages.has(product.image) ? product.image : `${product.image}?v=${Date.now()}&r=${refreshKey}`}
                         alt={product.name}
                         fill
                         className="object-cover rounded-lg"
@@ -642,6 +638,8 @@ export default function MenuPage() {
                         onLoad={(e) => {
                           const img = e.target as HTMLImageElement
                           console.log('Resim yüklendi:', img.src)
+                          // Resim başarıyla yüklendiğinde listeye ekle
+                          setUploadedImages(prev => new Set(prev).add(product.image))
                         }}
                       />
                     </div>
