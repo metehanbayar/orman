@@ -28,10 +28,24 @@ const nextConfig = {
       {
         source: '/dishes/:path*',
         destination: '/public/dishes/:path*',
+        has: [
+          {
+            type: 'query',
+            key: 'v',
+            value: undefined
+          }
+        ]
       },
       {
         source: '/categories/:path*',
         destination: '/public/categories/:path*',
+        has: [
+          {
+            type: 'query',
+            key: 'v',
+            value: undefined
+          }
+        ]
       }
     ]
   },
@@ -81,6 +95,13 @@ const nextConfig = {
       aggregateTimeout: 300,
     }
     return config
+  },
+  // Statik dosya servisini özelleştir
+  serverRuntimeConfig: {
+    PROJECT_ROOT: __dirname
+  },
+  publicRuntimeConfig: {
+    staticFolder: '/public'
   }
 }
 

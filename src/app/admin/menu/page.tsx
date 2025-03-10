@@ -156,6 +156,9 @@ export default function MenuPage() {
           throw new Error(uploadResult.error || 'Resim yüklenirken bir hata oluştu')
         }
 
+        // Resim yüklendikten sonra kısa bir bekleme
+        await new Promise(resolve => setTimeout(resolve, 500))
+
         imagePath = `${uploadResult.path}?v=${uploadResult.timestamp}`
         console.log('Yüklenen resim:', imagePath)
       }
@@ -228,7 +231,14 @@ export default function MenuPage() {
       }
 
       const savedProduct = await response.json()
-      setProducts(prevProducts => [...prevProducts, savedProduct])
+      
+      // Resim URL'ini güncelle
+      const updatedProduct = {
+        ...savedProduct,
+        image: imagePath
+      }
+      
+      setProducts(prevProducts => [...prevProducts, updatedProduct])
       setImageVersion(prev => prev + 1)
       setRefreshKey(prev => prev + 1)
       toast.success('Ürün başarıyla eklendi')
@@ -603,11 +613,16 @@ export default function MenuPage() {
                         className="object-cover rounded-lg"
                         unoptimized
                         priority
+                        loading="eager"
                         key={`${product.id}-${imageVersion}-${refreshKey}-${Date.now()}`}
                         onError={(e) => {
                           const img = e.target as HTMLImageElement
                           console.error('Resim yükleme hatası:', img.src)
                           img.src = '/placeholder.jpg'
+                        }}
+                        onLoad={(e) => {
+                          const img = e.target as HTMLImageElement
+                          console.log('Resim yüklendi:', img.src)
                         }}
                       />
                     </div>
