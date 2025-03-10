@@ -3,24 +3,16 @@ const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
   images: {
-    domains: ['placehold.co', 'qrmenu.lila.company', 'localhost'],
     unoptimized: true,
-    dangerouslyAllowSVG: true,
-    contentDispositionType: 'attachment',
+    domains: ['localhost'],
     remotePatterns: [
-      {
-        protocol: 'http',
-        hostname: 'qrmenu.lila.company',
-        port: '3000',
-        pathname: '/**',
-      },
       {
         protocol: 'http',
         hostname: 'localhost',
         port: '3000',
         pathname: '/**',
-      }
-    ]
+      },
+    ],
   },
   env: {
     MSSQL_USER: process.env.MSSQL_USER,
@@ -33,13 +25,11 @@ const nextConfig = {
     return [
       {
         source: '/dishes/:path*',
-        destination: '/public/dishes/:path*',
-        basePath: false
+        destination: 'http://localhost:3000/public/dishes/:path*'
       },
       {
         source: '/categories/:path*',
-        destination: '/public/categories/:path*',
-        basePath: false
+        destination: 'http://localhost:3000/public/categories/:path*'
       }
     ]
   },
@@ -49,24 +39,12 @@ const nextConfig = {
       {
         source: '/:path*',
         headers: [
-          { key: 'Access-Control-Allow-Credentials', value: 'true' },
-          { key: 'Access-Control-Allow-Origin', value: '*' },
-          { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,PATCH,POST,PUT' },
-          { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version' },
-          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0' },
-          { key: 'Pragma', value: 'no-cache' },
-          { key: 'Expires', value: '0' }
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          },
         ],
       },
-      {
-        source: '/(dishes|categories)/:path*',
-        headers: [
-          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0' },
-          { key: 'Pragma', value: 'no-cache' },
-          { key: 'Expires', value: '0' },
-          { key: 'Last-Modified', value: new Date().toUTCString() }
-        ],
-      }
     ]
   },
   // Statik dosya servisini etkinleştir
@@ -84,7 +62,7 @@ const nextConfig = {
       ],
     },
   },
-  webpack: (config, { dev, isServer }) => {
+  webpack: (config) => {
     config.watchOptions = {
       poll: 1000,
       aggregateTimeout: 300,

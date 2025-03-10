@@ -42,12 +42,12 @@ export async function POST(
     try {
       // Public ve upload dizinlerinin varlığını kontrol et ve oluştur
       if (!fs.existsSync(publicDir)) {
-        await mkdir(publicDir, { recursive: true, mode: 0o777 })
+        await mkdir(publicDir, { recursive: true })
         console.log('Public dizini oluşturuldu:', publicDir)
       }
 
       if (!fs.existsSync(uploadDir)) {
-        await mkdir(uploadDir, { recursive: true, mode: 0o777 })
+        await mkdir(uploadDir, { recursive: true })
         console.log('Upload dizini oluşturuldu:', uploadDir)
       }
 
@@ -64,13 +64,6 @@ export async function POST(
       await writeFile(filePath, buffer)
       console.log('Dosya kaydedildi:', filePath)
 
-      // Dosya izinlerini ayarla
-      await fs.promises.chmod(filePath, 0o666)
-      await fs.promises.chmod(uploadDir, 0o777)
-
-      // Dosyanın varlığını ve erişilebilirliğini kontrol et
-      await fs.promises.access(filePath, fs.constants.R_OK | fs.constants.W_OK)
-
       // URL'i oluştur
       const fileUrl = `/${type}/${filename}`
       console.log('Dosya URL:', fileUrl)
@@ -79,19 +72,12 @@ export async function POST(
       const stats = await fs.promises.stat(filePath)
       const fileSize = stats.size
 
-      // Next.js'in statik dosya önbelleğini temizle
-      const cacheDir = path.join(process.cwd(), '.next/cache')
-      if (fs.existsSync(cacheDir)) {
-        await fs.promises.rm(cacheDir, { recursive: true, force: true })
-      }
-
       return new Response(JSON.stringify({ 
         success: true,
         path: fileUrl,
         timestamp: timestamp,
         size: fileSize,
-        filename: filename,
-        fullPath: filePath
+        filename: filename
       }), {
         headers: {
           'Content-Type': 'application/json',
