@@ -20,16 +20,17 @@ const nextConfig = {
     MSSQL_SERVER: process.env.MSSQL_SERVER,
     MSSQL_DATABASE: process.env.MSSQL_DATABASE,
   },
-  // Statik dosyaların servis edilmesi için
+  // Statik dosyaların servis edilmesi için yapılandırma
+  // Basitleştirilmiş yapılandırma - çok fazla ara katman olmadan
   async rewrites() {
     return [
       {
         source: '/dishes/:path*',
-        destination: '/public/dishes/:path*'
+        destination: '/dishes/:path*'
       },
       {
         source: '/categories/:path*',
-        destination: '/public/categories/:path*'
+        destination: '/categories/:path*'
       }
     ]
   },
@@ -41,34 +42,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=0, must-revalidate'
-          }
-        ],
-      },
-      {
-        source: '/public/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=0, must-revalidate'
-          }
-        ],
-      },
-      {
-        source: '/dishes/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=0, must-revalidate'
-          }
-        ],
-      },
-      {
-        source: '/categories/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=0, must-revalidate'
+            value: 'no-cache, no-store, max-age=0, must-revalidate'
           }
         ],
       }
@@ -76,13 +50,6 @@ const nextConfig = {
   },
   // Statik dosya servisini etkinleştir
   distDir: '.next',
-  generateBuildId: async () => {
-    return `build-${Date.now()}`
-  },
-  // Statik dosya servisini yapılandır
-  experimental: {
-    outputFileTracingRoot: process.cwd(),
-  },
   // Webpack yapılandırması
   webpack: (config) => {
     config.watchOptions = {
@@ -91,13 +58,16 @@ const nextConfig = {
     }
     return config
   },
-  // Statik dosya servisini özelleştir
+  // Public klasörünü doğrudan statik olarak sun
   serverRuntimeConfig: {
-    PROJECT_ROOT: __dirname,
-    staticFolder: '/public'
+    PROJECT_ROOT: __dirname
   },
   publicRuntimeConfig: {
     staticFolder: '/public'
+  },
+  // Statik dosya servisini yapılandır
+  experimental: {
+    outputFileTracingRoot: process.cwd(),
   },
   // Statik dosya servisini yapılandır
   async redirects() {

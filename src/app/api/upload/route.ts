@@ -13,6 +13,7 @@ export async function POST(
   request: NextRequest
 ): Promise<Response> {
   try {
+    console.log('Upload API çağrıldı')
     const formData = await request.formData()
     const file = formData.get('file') as File
     const type = formData.get('type') as string || 'dishes'
@@ -40,15 +41,19 @@ export async function POST(
     const uploadDir = path.join(publicDir, type)
     
     try {
+      console.log('Yükleme dizinleri kontrolü:')
+      console.log(`- Public dizini: ${publicDir}`)
+      console.log(`- Upload dizini: ${uploadDir}`)
+      
       // Public ve upload dizinlerinin varlığını kontrol et ve oluştur
       if (!fs.existsSync(publicDir)) {
         await mkdir(publicDir, { recursive: true, mode: 0o777 })
-        console.log('Public dizini oluşturuldu:', publicDir)
+        console.log('Public dizini oluşturuldu')
       }
 
       if (!fs.existsSync(uploadDir)) {
         await mkdir(uploadDir, { recursive: true, mode: 0o777 })
-        console.log('Upload dizini oluşturuldu:', uploadDir)
+        console.log('Upload dizini oluşturuldu')
       }
 
       // Benzersiz dosya adı oluştur
@@ -60,10 +65,26 @@ export async function POST(
       const filename = `${sanitizedName}-${timestamp}${extension}`
       const filePath = path.join(uploadDir, filename)
 
+      console.log(`Kaydedilecek dosya: ${filePath}`)
+
       // Dosyayı kaydet
       await writeFile(filePath, buffer)
-      await fs.promises.chmod(filePath, 0o777)
-      console.log('Dosya kaydedildi:', filePath)
+      
+      // Kesin olarak izinleri ayarla (Docker içinde)
+      try {
+        await fs.promises.chmod(filePath, 0o777)
+        console.log('Dosya izinleri ayarlandı (777)')
+        
+        // Dosyanın mevcut olduğunu kontrol et
+        if (fs.existsSync(filePath)) {
+          const stat = fs.statSync(filePath)
+          console.log(`Dosya başarıyla kaydedildi: ${stat.size} bayt`)
+        } else {
+          console.error('Dosya yazıldı ancak disk üzerinde bulunamıyor!')
+        }
+      } catch (chmodErr) {
+        console.error('İzin ayarlama hatası:', chmodErr)
+      }
 
       // URL'i oluştur
       const fileUrl = `/${type}/${filename}`

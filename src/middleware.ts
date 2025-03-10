@@ -1,25 +1,21 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+// Basitleştirilmiş middleware - sadece headers
 export function middleware(request: NextRequest) {
-  // Statik dosya yollarını kontrol et
-  const { pathname } = request.nextUrl
+  const response = NextResponse.next()
   
-  // Eğer bu bir statik dosya ise (dishes veya categories içindeyse)
-  if (pathname.startsWith('/dishes/') || pathname.startsWith('/categories/')) {
-    const response = NextResponse.next()
-    
-    // Önbellek kontrolünü devre dışı bırak
-    response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate')
-    response.headers.delete('Pragma')
-    response.headers.delete('Expires')
-    
-    return response
-  }
+  // Tüm önbellek mekanizmalarını devre dışı bırak
+  response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0')
+  response.headers.set('Pragma', 'no-cache')
+  response.headers.set('Expires', '0')
   
-  return NextResponse.next()
+  return response
 }
 
 export const config = {
-  matcher: ['/dishes/:path*', '/categories/:path*']
+  matcher: [
+    // Projenin tüm yollarını içerecek şekilde güncellendi
+    '/((?!_next/static|favicon.ico).*)',
+  ],
 } 

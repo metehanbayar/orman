@@ -20,6 +20,21 @@ const publicDir = path.join(projectDir, 'public');
 const categoriesDir = path.join(publicDir, 'categories');
 const dishesDir = path.join(publicDir, 'dishes');
 
+// Mime tipleri
+const mimeTypes = {
+  '.html': 'text/html',
+  '.js': 'text/javascript',
+  '.css': 'text/css',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.webp': 'image/webp'
+};
+
 // Dizinleri ve izinleri kontrol et
 (async function setupDirectories() {
   try {
@@ -81,6 +96,44 @@ const dishesDir = path.join(publicDir, 'dishes');
 const app = next({ dev, hostname, port, dir: projectDir });
 const handle = app.getRequestHandler();
 
+// Statik dosya servis fonksiyonu
+function serveStaticFile(req, res, filePath) {
+  try {
+    if (!fs.existsSync(filePath)) {
+      console.log(`Dosya bulunamadı: ${filePath}`);
+      return false;
+    }
+
+    // Dosya istatistiklerini al
+    const stat = fs.statSync(filePath);
+    if (!stat.isFile()) {
+      console.log(`Geçerli bir dosya değil: ${filePath}`);
+      return false;
+    }
+
+    // Mime tipini belirle
+    const ext = path.extname(filePath).toLowerCase();
+    const contentType = mimeTypes[ext] || 'application/octet-stream';
+
+    // Dosyayı oku ve gönder
+    const fileStream = fs.createReadStream(filePath);
+    
+    res.writeHead(200, {
+      'Content-Type': contentType,
+      'Content-Length': stat.size,
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
+    fileStream.pipe(res);
+    return true;
+  } catch (err) {
+    console.error(`Dosya servis hatası (${filePath}):`, err);
+    return false;
+  }
+}
+
 app.prepare().then(() => {
   createServer(async (req, res) => {
     try {
@@ -99,34 +152,42 @@ app.prepare().then(() => {
         return;
       }
 
-      // Statik dosyaları kontrol et
+      // Yeni statik dosya servis mekanizması
+      // /dishes ve /categories yollarından gelen istekleri doğrudan işle
       if (pathname.startsWith('/dishes/') || pathname.startsWith('/categories/')) {
-        // Önbellek başlıklarını ekle
-        res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
-
-        // Static dosya yolunu belirle
-        let filePath;
-        if (pathname.startsWith('/dishes/')) {
-          filePath = path.join(publicDir, pathname);
-        } else if (pathname.startsWith('/categories/')) {
-          filePath = path.join(publicDir, pathname);
+        // Dosya yolunu belirle
+        const relativePath = pathname.startsWith('/dishes/') 
+          ? pathname.replace('/dishes/', '') 
+          : pathname.replace('/categories/', '');
+        
+        const basePath = pathname.startsWith('/dishes/') ? dishesDir : categoriesDir;
+        const filePath = path.join(basePath, relativePath);
+        
+        console.log(`Statik dosya istendi: ${pathname} => ${filePath}`);
+        
+        // Dosyayı servis et
+        if (serveStaticFile(req, res, filePath)) {
+          return; // Dosya servis edildi, devam etme
         }
-
-        // Dosyanın varlığını kontrol et
-        if (filePath && fs.existsSync(filePath)) {
-          const stat = fs.statSync(filePath);
-          const fileContent = fs.readFileSync(filePath);
-          res.writeHead(200, {
-            'Content-Type': getContentType(pathname),
-            'Content-Length': stat.size
-          });
-          res.end(fileContent);
-          return;
+      }
+      
+      // /public yolundan gelen istekleri doğrudan işle
+      if (pathname.startsWith('/public/')) {
+        const relativePath = pathname.replace('/public/', '');
+        const filePath = path.join(publicDir, relativePath);
+        
+        if (serveStaticFile(req, res, filePath)) {
+          return; // Dosya servis edildi, devam etme
         }
       }
 
-      // Static dosyaları handle et
-      if (pathname.startsWith('/_next/') || pathname.includes('.')) {
+      // Next.js tarafından işlenen statik dosyalar
+      if (pathname.startsWith('/_next/') || 
+          pathname.includes('.ico') || 
+          pathname.includes('.png') || 
+          pathname.includes('.jpg') || 
+          pathname.includes('.jpeg') || 
+          pathname.includes('.svg')) {
         await handle(req, res, parsedUrl);
         return;
       }
@@ -142,23 +203,4 @@ app.prepare().then(() => {
     if (err) throw err;
     console.log(`QR Menü uygulaması http://${hostname}:${port} adresinde çalışıyor`);
   });
-});
-
-// MIME türünü belirle
-function getContentType(path) {
-  const ext = String(path).split('.').pop().toLowerCase();
-  const mimeTypes = {
-    'html': 'text/html',
-    'js': 'text/javascript',
-    'css': 'text/css',
-    'json': 'application/json',
-    'png': 'image/png',
-    'jpg': 'image/jpeg',
-    'jpeg': 'image/jpeg',
-    'gif': 'image/gif',
-    'svg': 'image/svg+xml',
-    'ico': 'image/x-icon'
-  };
-  
-  return mimeTypes[ext] || 'application/octet-stream';
-} 
+}); 
