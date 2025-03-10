@@ -66,7 +66,8 @@ export async function POST(
 
       // Dosya izinlerini ayarla
       fs.chmodSync(filePath, 0o666)
-      console.log('Dosya izinleri ayarlandı:', filePath)
+      fs.chmodSync(uploadDir, 0o777)
+      console.log('Dosya ve dizin izinleri ayarlandı')
 
       // Dosyanın varlığını kontrol et
       if (fs.existsSync(filePath)) {
@@ -80,17 +81,27 @@ export async function POST(
         const stats = fs.statSync(filePath)
         const fileSize = stats.size
 
+        // Dosya izinlerini kontrol et
+        try {
+          await fs.promises.access(filePath, fs.constants.R_OK | fs.constants.W_OK)
+          console.log('Dosya okuma/yazma izinleri doğru')
+        } catch (error) {
+          console.error('Dosya izin hatası:', error)
+          throw new Error('Dosya izinleri hatalı')
+        }
+
         return new Response(JSON.stringify({ 
           success: true,
           path: fileUrl,
           timestamp: timestamp,
           size: fileSize,
           filename: filename,
-          fullPath: filePath
+          fullPath: filePath,
+          permissions: '0666'
         }), {
           headers: {
             'Content-Type': 'application/json',
-            'Cache-Control': 'no-store, no-cache, must-revalidate',
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
             'Pragma': 'no-cache',
             'Expires': '0'
           }

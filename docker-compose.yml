@@ -14,9 +14,11 @@ services:
       - MSSQL_SERVER=${MSSQL_SERVER}
       - MSSQL_DATABASE=${MSSQL_DATABASE}
     volumes:
-      - ./public:/app/public
-      - ./data:/app/data
+      - ./public:/app/public:rw
+      - ./data:/app/data:rw
       - node_modules:/app/node_modules
+      - ./public/dishes:/app/public/dishes:rw
+      - ./public/categories:/app/public/categories:rw
     restart: unless-stopped
     # Debug için komut satırı çıktılarını daha detaylı göster
     logging:
@@ -24,12 +26,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    user: "1001:1001"
 
 volumes:
-  static_files:
-  data_files:
-  uploads:
-  app_data:
-  app_dishes:
-  app_categories:
   node_modules: 

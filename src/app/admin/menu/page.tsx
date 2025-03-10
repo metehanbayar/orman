@@ -141,7 +141,7 @@ export default function MenuPage() {
           body: imageFormData,
           cache: 'no-store',
           headers: {
-            'Cache-Control': 'no-store, no-cache, must-revalidate',
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
             'Pragma': 'no-cache'
           }
         })
@@ -157,10 +157,28 @@ export default function MenuPage() {
         }
 
         // Resim yüklendikten sonra kısa bir bekleme
-        await new Promise(resolve => setTimeout(resolve, 500))
+        await new Promise(resolve => setTimeout(resolve, 1000))
 
         imagePath = `${uploadResult.path}?v=${uploadResult.timestamp}`
         console.log('Yüklenen resim:', imagePath)
+
+        // Resmin erişilebilir olduğunu kontrol et
+        try {
+          const checkResponse = await fetch(imagePath, { 
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+              'Pragma': 'no-cache'
+            }
+          })
+          if (!checkResponse.ok) {
+            throw new Error('Resim dosyası erişilebilir değil')
+          }
+          console.log('Resim dosyası erişilebilir')
+        } catch (error) {
+          console.error('Resim erişim hatası:', error)
+          throw new Error('Yüklenen resim erişilebilir değil')
+        }
       }
 
       const category = formData.get('category')?.toString() || ''
@@ -614,6 +632,7 @@ export default function MenuPage() {
                         unoptimized
                         priority
                         loading="eager"
+                        sizes="64px"
                         key={`${product.id}-${imageVersion}-${refreshKey}-${Date.now()}`}
                         onError={(e) => {
                           const img = e.target as HTMLImageElement

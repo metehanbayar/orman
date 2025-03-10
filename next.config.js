@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
   images: {
-    domains: ['placehold.co', 'qrmenu.lila.company'],
+    domains: ['placehold.co', 'qrmenu.lila.company', 'localhost'],
     unoptimized: true,
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
@@ -11,6 +11,12 @@ const nextConfig = {
       {
         protocol: 'http',
         hostname: 'qrmenu.lila.company',
+        port: '3000',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
         port: '3000',
         pathname: '/**',
       }
@@ -28,24 +34,10 @@ const nextConfig = {
       {
         source: '/dishes/:path*',
         destination: '/public/dishes/:path*',
-        has: [
-          {
-            type: 'query',
-            key: 'v',
-            value: undefined
-          }
-        ]
       },
       {
         source: '/categories/:path*',
         destination: '/public/categories/:path*',
-        has: [
-          {
-            type: 'query',
-            key: 'v',
-            value: undefined
-          }
-        ]
       }
     ]
   },
@@ -59,7 +51,7 @@ const nextConfig = {
           { key: 'Access-Control-Allow-Origin', value: '*' },
           { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,PATCH,POST,PUT' },
           { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version' },
-          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate' },
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate' },
           { key: 'Pragma', value: 'no-cache' },
           { key: 'Expires', value: '0' }
         ],
@@ -67,9 +59,10 @@ const nextConfig = {
       {
         source: '/(dishes|categories)/:path*',
         headers: [
-          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate' },
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate' },
           { key: 'Pragma', value: 'no-cache' },
-          { key: 'Expires', value: '0' }
+          { key: 'Expires', value: '0' },
+          { key: 'Last-Modified', value: new Date().toUTCString() }
         ],
       }
     ]
@@ -98,7 +91,8 @@ const nextConfig = {
   },
   // Statik dosya servisini özelleştir
   serverRuntimeConfig: {
-    PROJECT_ROOT: __dirname
+    PROJECT_ROOT: __dirname,
+    staticFolder: '/public'
   },
   publicRuntimeConfig: {
     staticFolder: '/public'
