@@ -25,13 +25,11 @@ const nextConfig = {
     return [
       {
         source: '/dishes/:path*',
-        destination: '/public/dishes/:path*',
-        basePath: false
+        destination: 'http://localhost:3000/public/dishes/:path*'
       },
       {
         source: '/categories/:path*',
-        destination: '/public/categories/:path*',
-        basePath: false
+        destination: 'http://localhost:3000/public/categories/:path*'
       }
     ]
   },
@@ -81,6 +79,7 @@ const nextConfig = {
       ],
     },
   },
+  // Webpack yapılandırması
   webpack: (config) => {
     config.watchOptions = {
       poll: 1000,
